@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cofraternidad | Control Central y Legal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ink: '#17211f',
+            pine: '#174d45',
+            'pine-dark': '#0f3630',
+            mint: '#e5f3ed',
+            coral: '#e97a5b',
+            canvas: '#f7f8f5'
+          },
+          boxShadow: {
+            soft: '0 18px 50px rgba(23, 33, 31, 0.07)',
+            modal: '0 25px 60px -15px rgba(23, 33, 31, 0.25)'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+    body { font-family: 'DM Sans', sans-serif; }
+    .nav-active {
+      position: relative;
+      background-color: #e5f3ed !important;
+      color: #174d45 !important;
+      font-weight: 600 !important;
+    }
+    .nav-active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 4px;
+      border-radius: 0 4px 4px 0;
+      background: #e97a5b;
+    }
+    @media (max-width: 767px) {
+      .nav-active::before {
+        top: auto;
+        bottom: 0;
+        left: 8px;
+        right: 8px;
+        width: auto;
+        height: 3px;
+        border-radius: 4px 4px 0 0;
+      }
+    }
+    @keyframes toast-in {
+      from { opacity: 0; transform: translate(-50%, 12px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    .toast-in { animation: toast-in .25s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+  </style>
+</head>
+<body class="min-h-screen bg-canvas text-ink antialiased">
+  <div class="min-h-screen md:pl-64">
+    <!-- BARRA LATERAL (Escritorio) & NAVEGACIÓN INFERIOR (Móvil) -->
+    <aside class="fixed inset-x-0 bottom-0 z-20 flex h-[68px] border-t border-slate-200 bg-white px-2 md:inset-y-0 md:right-auto md:h-screen md:w-64 md:flex-col md:border-r md:border-t-0 md:px-5 md:py-6">
+      <!-- Marca -->
+      <div class="hidden items-center justify-between px-2 md:flex">
+        <div class="flex items-center gap-3">
+          <div class="grid h-10 w-10 place-items-center rounded-xl bg-pine font-bold text-white shadow-sm">C</div>
+          <div>
+            <p class="font-bold tracking-tight text-ink">Cofraternidad</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[.16em] text-slate-400">Control Central</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tasa BCV Badge -->
+      <div class="hidden md:block mt-6 px-2">
+        <div class="flex items-center justify-between rounded-xl bg-slate-50 border border-slate-200/80 px-3 py-2 text-xs">
+          <span class="text-slate-500 font-medium">Tasa Oficial BCV</span>
+          <span id="sidebar-bcv-rate" class="font-bold text-pine">Bs. 45,50</span>
+        </div>
+      </div>
+
+      <!-- Menú de Navegación -->
+      <nav class="flex flex-1 items-center justify-around gap-1 md:mt-8 md:block md:space-y-1">
+        <button onclick="navigate('inicio')" id="nav-inicio" class="nav-active flex w-full items-center justify-center gap-3 rounded-xl px-3 py-3 text-xs font-medium text-slate-600 transition hover:bg-slate-50 md:justify-start md:text-sm">
+          <span class="text-base">⌂</span>
+          <span class="hidden md:inline">Inicio / Resumen</span>
+        </button>
+        <button onclick="navigate('pagos')" id="nav-pagos" class="flex w-full items-center justify-between rounded-xl px-3 py-3 text-xs font-medium text-slate-600 transition hover:bg-slate-50 md:justify-start md:text-sm">
+          <div class="flex items-center gap-3">
+            <span class="text-base">▣</span>
+            <span class="hidden md:inline">Bandeja de Pagos</span>
+          </div>
+          <span id="nav-pending-badge" class="hidden md:inline-flex items-center justify-center rounded-full bg-coral/15 px-2 py-0.5 text-[10px] font-bold text-coral ml-auto">0</span>
+        </button>
+        <button onclick="navigate('iglesias')" id="nav-iglesias" class="flex w-full items-center justify-center gap-3 rounded-xl px-3 py-3 text-xs font-medium text-slate-600 transition hover:bg-slate-50 md:justify-start md:text-sm">
+          <span class="text-base">♧</span>
+          <span class="hidden md:inline">Directorio de Iglesias</span>
+        </button>
+        <button onclick="navigate('tramites')" id="nav-tramites" class="flex w-full items-center justify-between rounded-xl px-3 py-3 text-xs font-medium text-slate-600 transition hover:bg-slate-50 md:justify-start md:text-sm">
+          <div class="flex items-center gap-3">
+            <span class="text-base">▤</span>
+            <span class="hidden md:inline">Trámites Legales</span>
+          </div>
+          <span id="nav-legal-badge" class="hidden md:inline-flex items-center justify-center rounded-full bg-pine/10 px-2 py-0.5 text-[10px] font-bold text-pine ml-auto">0</span>
+        </button>
+        <button onclick="navigate('soporte')" id="nav-soporte" class="flex w-full items-center justify-center gap-3 rounded-xl px-3 py-3 text-xs font-medium text-slate-600 transition hover:bg-slate-50 md:justify-start md:text-sm">
+          <span class="text-base">?</span>
+          <span class="hidden md:inline">Soporte y Ayuda</span>
+        </button>
+      </nav>
+
+      <!-- Footer lateral -->
+      <div class="hidden border-t border-slate-100 pt-4 md:block">
+        <div class="flex items-center gap-3 px-2 py-2">
+          <div class="grid h-9 w-9 place-items-center rounded-full bg-pine text-xs font-bold text-white shadow-sm">MR</div>
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-xs font-bold text-ink">Dra. Mariela Ramos</p>
+            <p class="truncate text-[11px] text-slate-400">Consultoría Jurídica</p>
+          </div>
+        </div>
+        <button onclick="logoutUser()" class="mt-2 w-full rounded-lg px-2 py-2 text-left text-xs font-semibold text-slate-400 transition hover:bg-red-50 hover:text-red-600">Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="mx-auto max-w-[1400px] px-4 pb-28 pt-6 sm:px-8 md:px-10 md:pb-12 md:pt-8">
+      <!-- Encabezado Superior -->
+      <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-[.18em] text-coral">Departamento Legal y Administrativo</span>
+            <span class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" title="Conexión en vivo activa"></span>
+          </div>
+          <h1 id="page-title" class="mt-1 text-2xl font-bold tracking-[-.04em] sm:text-3xl text-ink">Resumen General</h1>
+        </div>
+        <div class="flex items-center gap-3 self-end sm:self-auto">
+          <!-- Enlace a la app móvil -->
+          <a href="app-movil.html" target="_blank" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-pine shadow-sm transition hover:border-pine hover:bg-mint/40">
+            <span>Vista Iglesia (Móvil)</span>
+            <span class="text-sm">↗</span>
+          </a>
+          <!-- Notificaciones rápidas -->
+          <button onclick="navigate('pagos')" class="relative grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-slate-50" title="Ver pagos pendientes">
+            <span class="text-sm">🔔</span>
+            <span id="top-alert-dot" class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-coral ring-2 ring-white"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- ========================================== -->
+      <!-- SECCIÓN 1: INICIO / RESUMEN GENERAL -->
+      <!-- ========================================== -->
+      <div id="view-inicio" class="view-section mt-8 space-y-8">
+        <!-- Tarjetas de Métricas -->
+        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div onclick="navigate('pagos')" class="cursor-pointer rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition hover:shadow-md hover:border-coral/50">
+            <div class="flex justify-between text-xs font-semibold text-slate-500">
+              <span>Pagos por validar</span>
+              <span class="h-2 w-2 rounded-full bg-coral"></span>
+            </div>
+            <div class="mt-3 flex items-baseline gap-2">
+              <strong id="stat-pending-payments" class="text-3xl font-bold tracking-[-.04em] text-coral">0</strong>
+              <span class="text-xs text-slate-400">requieren revisión</span>
+            </div>
+            <p class="mt-2 text-[11px] text-slate-400 font-medium">Bandeja de comprobantes recibidos</p>
+          </div>
+
+          <div class="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm">
+            <div class="flex justify-between text-xs font-semibold text-slate-500">
+              <span>Recaudación mensual</span>
+              <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+            </div>
+            <div class="mt-3 flex items-baseline gap-2">
+              <strong id="stat-total-usd" class="text-3xl font-bold tracking-[-.04em] text-pine">$ 0</strong>
+              <span class="text-xs text-slate-400">USD</span>
+            </div>
+            <p id="stat-total-bs" class="mt-1 text-xs text-slate-500 font-semibold">Equiv. Bs. 0</p>
+          </div>
+
+          <div onclick="navigate('iglesias')" class="cursor-pointer rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition hover:shadow-md hover:border-pine/50">
+            <div class="flex justify-between text-xs font-semibold text-slate-500">
+              <span>Iglesias afiliadas</span>
+              <span class="h-2 w-2 rounded-full bg-pine"></span>
+            </div>
+            <div class="mt-3 flex items-baseline gap-2">
+              <strong id="stat-total-churches" class="text-3xl font-bold tracking-[-.04em] text-ink">0</strong>
+              <span id="stat-churches-solvent" class="text-xs text-emerald-600 font-semibold">0 solventes</span>
+            </div>
+            <p class="mt-2 text-[11px] text-slate-400 font-medium">Ver directorio y sedes registradas</p>
+          </div>
+
+          <div onclick="navigate('tramites')" class="cursor-pointer rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition hover:shadow-md hover:border-pine/50">
+            <div class="flex justify-between text-xs font-semibold text-slate-500">
+              <span>Trámites legales activos</span>
+              <span class="h-2 w-2 rounded-full bg-amber-500"></span>
+            </div>
+            <div class="mt-3 flex items-baseline gap-2">
+              <strong id="stat-active-legal" class="text-3xl font-bold tracking-[-.04em] text-ink">0</strong>
+              <span class="text-xs text-slate-400">en gestión</span>
+            </div>
+            <p class="mt-2 text-[11px] text-slate-400 font-medium">Títulos, actas y asesorías</p>
+          </div>
+        </section>
+
+        <!-- Bloque Central: Estado de Recaudación y Accesos Rápidos -->
+        <div class="grid gap-6 lg:grid-cols-3">
+          <!-- Columna Izquierda: Gráfico de recaudación / resumen -->
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-soft lg:col-span-2">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-4">
+              <div>
+                <h2 class="text-lg font-bold text-ink">Estado de Aportes y Recaudación</h2>
+                <p class="text-xs text-slate-500">Resumen consolidado del período actual</p>
+              </div>
+              <button onclick="navigate('pagos')" class="text-xs font-semibold text-pine hover:underline">Ir a Bandeja de Pagos →</button>
+            </div>
+
+            <div class="mt-6 space-y-4">
+              <div>
+                <div class="flex justify-between text-xs font-semibold mb-1.5">
+                  <span class="text-slate-600">Cumplimiento de Aportes Mensuales</span>
+                  <span id="recaudacion-progress-text" class="text-pine font-bold">0% de iglesias solventes</span>
+                </div>
+                <div class="h-3 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div id="recaudacion-progress-bar" class="h-full bg-pine rounded-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+              </div>
+
+              <!-- Desglose por método de pago -->
+              <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3 pt-4">
+                <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3">
+                  <p class="text-[11px] text-slate-500 font-medium">Pago Móvil</p>
+                  <p id="metodo-pm-count" class="text-base font-bold text-ink mt-0.5">0 pagos</p>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3">
+                  <p class="text-[11px] text-slate-500 font-medium">Transferencias</p>
+                  <p id="metodo-trans-count" class="text-base font-bold text-ink mt-0.5">0 pagos</p>
+                </div>
+                <div class="rounded-xl border border-slate-100 bg-slate-50/70 p-3">
+                  <p class="text-[11px] text-slate-500 font-medium">Zelle / Divisas</p>
+                  <p id="metodo-zelle-count" class="text-base font-bold text-ink mt-0.5">0 pagos</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Accesos directos rápidos -->
+            <div class="mt-8 border-t border-slate-100 pt-5">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Acciones Frecuentes</h3>
+              <div class="flex flex-wrap gap-2.5">
+                <button onclick="navigate('pagos'); openRegisterPaymentModal();" class="inline-flex items-center gap-2 rounded-xl bg-pine px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-pine-dark transition">
+                  <span>+</span> Registrar Pago en Caja
+                </button>
+                <button onclick="navigate('iglesias'); openNewChurchModal();" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition">
+                  <span>♧</span> Afiliar Nueva Iglesia
+                </button>
+                <button onclick="navigate('tramites'); openNewLegalModal();" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition">
+                  <span>▤</span> Abrir Trámite Legal
+                </button>
+                <button onclick="CofraternidadStore.exportPaymentsCSV()" class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition">
+                  <span>↓</span> Exportar Reporte CSV
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Actividad en Vivo -->
+          <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-soft">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+              <h2 class="text-base font-bold text-ink">Actividad Reciente</h2>
+              <span class="rounded-full bg-mint px-2 py-0.5 text-[10px] font-bold uppercase text-pine">En Vivo</span>
+            </div>
+            <div id="inicio-recent-activity" class="mt-4 divide-y divide-slate-100 space-y-3">
+              <!-- Actividad inyectada dinámicamente -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SECCIÓN 2: BANDEJA DE PAGOS -->
+      <!-- ========================================== -->
+      <div id="view-pagos" class="view-section mt-8 hidden space-y-6">
+        <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-soft sm:p-6">
+          <!-- Filtros y Botones de Acción -->
+          <div class="flex flex-col gap-4 border-b border-slate-100 pb-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-ink">Comprobantes y Pagos Registrados</h2>
+                <span class="rounded-full bg-mint px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-pine">Validación</span>
+              </div>
+              <p class="mt-1 text-sm text-slate-500">Valida los aportes enviados por las congregaciones o registra ingresos manuales.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="openRegisterPaymentModal()" class="rounded-xl bg-pine px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-pine-dark transition">
+                + Registrar Pago
+              </button>
+              <button onclick="CofraternidadStore.exportPaymentsCSV()" class="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-sm">
+                Descargar CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- Barra de Búsqueda y Filtros -->
+          <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="relative flex-1 max-w-md">
+              <input id="payment-search" type="search" placeholder="Buscar por iglesia, ref. o concepto..." class="h-10 w-full rounded-xl border border-slate-200 pl-9 pr-3 text-xs sm:text-sm outline-none focus:border-pine">
+              <span class="absolute left-3 top-2.5 text-xs text-slate-400">🔍</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <select id="payment-status-filter" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs sm:text-sm font-medium outline-none focus:border-pine">
+                <option value="Todos">Todos los estados</option>
+                <option value="Pendiente">Solo Pendientes</option>
+                <option value="Aprobado">Aprobados</option>
+                <option value="Rechazado">Rechazados</option>
+              </select>
+              <select id="payment-method-filter" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs sm:text-sm font-medium outline-none focus:border-pine">
+                <option value="Todos">Todos los métodos</option>
+                <option value="Pago Móvil">Pago Móvil</option>
+                <option value="Transferencia">Transferencia</option>
+                <option value="Zelle">Zelle</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Tabla de Pagos -->
+          <div class="mt-4 overflow-x-auto custom-scrollbar">
+            <table class="w-full min-w-[840px] text-left">
+              <thead>
+                <tr class="border-b border-slate-100 text-[10px] uppercase tracking-[.14em] text-slate-400">
+                  <th class="py-3.5 font-semibold">Iglesia / Congregación</th>
+                  <th class="py-3.5 font-semibold">Monto USD</th>
+                  <th class="py-3.5 font-semibold">Monto Bs. (BCV)</th>
+                  <th class="py-3.5 font-semibold">Referencia & Método</th>
+                  <th class="py-3.5 font-semibold">Estado</th>
+                  <th class="py-3.5 text-right font-semibold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="payment-table-rows">
+                <!-- Se inyecta con renderPayments() -->
+              </tbody>
+            </table>
+            <div id="payments-empty-state" class="hidden py-12 text-center">
+              <p class="text-sm font-medium text-slate-500">No se encontraron pagos con los filtros seleccionados.</p>
+              <button onclick="document.getElementById('payment-search').value=''; document.getElementById('payment-status-filter').value='Todos'; renderPayments();" class="mt-2 text-xs font-bold text-pine underline">Limpiar filtros</button>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SECCIÓN 3: DIRECTORIO DE IGLESIAS -->
+      <!-- ========================================== -->
+      <div id="view-iglesias" class="view-section mt-8 hidden space-y-6">
+        <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-soft sm:p-6">
+          <div class="flex flex-col gap-4 border-b border-slate-100 pb-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-ink">Directorio de Iglesias Afiliadas</h2>
+                <span id="churches-badge-count" class="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">0 sedes</span>
+              </div>
+              <p class="mt-1 text-sm text-slate-500">Registro oficial de congregaciones, pastores responsables y estatus de solvencia.</p>
+            </div>
+            <button onclick="openNewChurchModal()" class="rounded-xl bg-pine px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-pine-dark transition">
+              + Afiliar Nueva Iglesia
+            </button>
+          </div>
+
+          <!-- Filtros de Iglesias -->
+          <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="relative flex-1 max-w-md">
+              <input id="church-search" type="search" placeholder="Buscar por nombre, pastor o ciudad..." class="h-10 w-full rounded-xl border border-slate-200 pl-9 pr-3 text-xs sm:text-sm outline-none focus:border-pine">
+              <span class="absolute left-3 top-2.5 text-xs text-slate-400">🔍</span>
+            </div>
+            <div class="flex gap-2">
+              <select id="church-status-filter" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs sm:text-sm font-medium outline-none focus:border-pine">
+                <option value="Todos">Todos los estatus</option>
+                <option value="Solvente">Solvente</option>
+                <option value="En mora">En mora</option>
+                <option value="En proceso">En proceso de afiliación</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Listado de Iglesias (Grid de Fichas) -->
+          <div id="churches-grid" class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <!-- Inyectado por renderChurches() -->
+          </div>
+          <div id="churches-empty-state" class="hidden py-12 text-center">
+            <p class="text-sm font-medium text-slate-500">No se encontraron congregaciones con ese criterio.</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SECCIÓN 4: TRÁMITES LEGALES -->
+      <!-- ========================================== -->
+      <div id="view-tramites" class="view-section mt-8 hidden space-y-6">
+        <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-soft sm:p-6">
+          <div class="flex flex-col gap-4 border-b border-slate-100 pb-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-lg font-bold text-ink">Bandeja de Trámites Legales</h2>
+                <span class="rounded-full bg-mint px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-pine">Consultoría Jurídica</span>
+              </div>
+              <p class="mt-1 text-sm text-slate-500">Gestión de títulos supletorios, reformas estatutarias, actas y asesoría ministerial.</p>
+            </div>
+            <button onclick="openNewLegalModal()" class="rounded-xl bg-pine px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-pine-dark transition">
+              + Aperturar Nuevo Trámite
+            </button>
+          </div>
+
+          <!-- Filtro de Trámites -->
+          <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="relative flex-1 max-w-md">
+              <input id="legal-search" type="search" placeholder="Buscar por trámite, iglesia o abogado..." class="h-10 w-full rounded-xl border border-slate-200 pl-9 pr-3 text-xs sm:text-sm outline-none focus:border-pine">
+              <span class="absolute left-3 top-2.5 text-xs text-slate-400">🔍</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <select id="legal-status-filter" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs sm:text-sm font-medium outline-none focus:border-pine">
+                <option value="Todos">Todas las fases</option>
+                <option value="Recibido">Recibido</option>
+                <option value="En análisis">En análisis</option>
+                <option value="En Notaría/Registro">En Notaría / Registro</option>
+                <option value="Concluido">Concluido</option>
+              </select>
+              <select id="legal-category-filter" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs sm:text-sm font-medium outline-none focus:border-pine">
+                <option value="Todos">Todas las áreas</option>
+                <option value="Inmuebles y Terrenos">Inmuebles (Títulos Supletorios)</option>
+                <option value="Constitución Legal">Constitución y Estatutos</option>
+                <option value="Solvencia">Solvencias</option>
+                <option value="Asesoría Laboral">Asesoría Laboral</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Listado de Trámites -->
+          <div id="legal-requests-list" class="mt-6 space-y-4">
+            <!-- Inyectado por renderLegal() -->
+          </div>
+          <div id="legal-empty-state" class="hidden py-12 text-center">
+            <p class="text-sm font-medium text-slate-500">No hay trámites legales registrados con los filtros aplicados.</p>
+          </div>
+        </section>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SECCIÓN 5: SOPORTE Y AYUDA -->
+      <!-- ========================================== -->
+      <div id="view-soporte" class="view-section mt-8 hidden space-y-6">
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-soft">
+          <h2 class="text-xl font-bold text-ink">Centro de Asistencia Jurídica e Institucional</h2>
+          <p class="mt-1 text-sm text-slate-500">Guía práctica y canales de atención directa para las congregaciones asociadas.</p>
+
+          <div class="mt-8 grid gap-6 md:grid-cols-2">
+            <!-- Tarjetas de Guías Frecuentes -->
+            <div class="rounded-2xl border border-slate-200 p-5 bg-slate-50/50">
+              <h3 class="font-bold text-pine flex items-center gap-2">
+                <span>🏛️</span> Regularización de Templos (Títulos Supletorios)
+              </h3>
+              <p class="mt-2 text-xs text-slate-600 leading-relaxed">
+                El título supletorio permite a las iglesias formalizar legalmente las bienhechurías levantadas sobre terrenos municipales o privados. Requisitos: inspección de testigos, memoria fotográfica, solvencia catastral y visto bueno de la Cofraternidad.
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 p-5 bg-slate-50/50">
+              <h3 class="font-bold text-pine flex items-center gap-2">
+                <span>📜</span> Solvencia Eclesiástica Anual
+              </h3>
+              <p class="mt-2 text-xs text-slate-600 leading-relaxed">
+                Requisito indispensable para presentar ante la Dirección General de Justicia y Cultos (MIJP). Se emite a congregaciones al día con sus aportes estatutarios y junta directiva inscrita.
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 p-5 bg-slate-50/50">
+              <h3 class="font-bold text-pine flex items-center gap-2">
+                <span>⚖️</span> Reformas de Estatutos y Juntas
+              </h3>
+              <p class="mt-2 text-xs text-slate-600 leading-relaxed">
+                Cada período estatutario debe registrarse el acta de designación de nuevos pastores y directiva para mantener la firma bancaria y facultades de administración legal activas.
+              </p>
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 p-5 bg-slate-50/50">
+              <h3 class="font-bold text-pine flex items-center gap-2">
+                <span>💵</span> Cálculo de Aportes con Tasa BCV
+              </h3>
+              <p class="mt-2 text-xs text-slate-600 leading-relaxed">
+                Todos los pagos reportados en Bolívares (Bs.) se cotejan con la tasa del Banco Central de Venezuela publicada al cierre de la fecha de la transacción.
+              </p>
+            </div>
+          </div>
+
+          <!-- Contacto Central -->
+          <div class="mt-8 rounded-2xl bg-mint/50 border border-emerald-200 p-6">
+            <h3 class="font-bold text-pine text-base">¿Dudas o requerimientos especiales?</h3>
+            <p class="text-xs text-slate-600 mt-1">El equipo legal atiende consultas directas de lunes a viernes en horario de oficina.</p>
+            <div class="mt-4 flex flex-wrap gap-4 text-xs">
+              <div class="flex items-center gap-2 font-medium text-slate-700">
+                <span class="text-base">📞</span> <span>+58 212 555-0199</span>
+              </div>
+              <div class="flex items-center gap-2 font-medium text-slate-700">
+                <span class="text-base">💬</span> <span>WhatsApp Legal: +58 414 123-4567</span>
+              </div>
+              <div class="flex items-center gap-2 font-medium text-slate-700">
+                <span class="text-base">✉️</span> <span>legal@cofraternidadiglesias.org</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ajuste de tasa y datos de demo -->
+          <div class="mt-8 border-t border-slate-100 pt-6 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <label for="config-bcv" class="text-xs font-bold text-slate-600">Actualizar Tasa BCV (Bs/$):</label>
+              <input id="config-bcv" type="number" step="0.10" class="h-9 w-24 rounded-lg border border-slate-200 px-2 text-xs font-bold text-pine text-center">
+              <button onclick="updateBCVConfig()" class="rounded-lg bg-pine px-3 py-2 text-xs font-semibold text-white hover:bg-pine-dark">Guardar Tasa</button>
+            </div>
+            <button onclick="if(confirm('¿Deseas reiniciar los datos a la demostración inicial?')) { CofraternidadStore.resetToDefaults(); showToast('Datos restaurados'); }" class="text-xs font-medium text-slate-400 hover:text-red-500 underline">
+              Restablecer datos demo de prueba
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <p class="mt-8 text-center text-xs text-slate-400">Cofraternidad de Iglesias · Sistema Integrado de Control Central &copy; 2026</p>
+    </main>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 1: INSPECCIONAR PAGO / COMPROBANTE DE PAGO -->
+  <!-- ============================================================== -->
+  <div id="payment-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-ink/40 backdrop-blur-sm">
+    <div class="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 shadow-modal custom-scrollbar">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-coral">Comprobante de Validación</span>
+          <h3 id="modal-payment-church" class="text-lg font-bold text-ink">Iglesia El Buen Pastor</h3>
+        </div>
+        <button onclick="closePaymentModal()" class="grid h-8 w-8 place-items-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-ink text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="mt-5 space-y-4 text-xs">
+        <!-- Tarjeta de Montos -->
+        <div class="grid grid-cols-2 gap-3 rounded-2xl bg-canvas p-4 border border-slate-200/80">
+          <div>
+            <p class="text-[11px] font-medium text-slate-500">Monto Acreditado USD</p>
+            <p id="modal-payment-usd" class="text-xl font-bold text-pine mt-0.5">$ 0,00</p>
+          </div>
+          <div>
+            <p class="text-[11px] font-medium text-slate-500">Equivalente en Bolívares</p>
+            <p id="modal-payment-bs" class="text-xl font-bold text-ink mt-0.5">Bs. 0,00</p>
+          </div>
+        </div>
+
+        <!-- Fila de Metadatos -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <span class="text-slate-400 font-medium">Nro. de Referencia:</span>
+            <p id="modal-payment-ref" class="font-mono font-bold text-ink text-sm mt-0.5">-</p>
+          </div>
+          <div>
+            <span class="text-slate-400 font-medium">Método de Pago:</span>
+            <p id="modal-payment-method" class="font-bold text-ink text-sm mt-0.5">-</p>
+          </div>
+          <div>
+            <span class="text-slate-400 font-medium">Fecha y Hora de Recepción:</span>
+            <p id="modal-payment-date" class="font-semibold text-slate-700 mt-0.5">-</p>
+          </div>
+          <div>
+            <span class="text-slate-400 font-medium">Concepto / Motivo:</span>
+            <p id="modal-payment-concept" class="font-semibold text-slate-700 mt-0.5">-</p>
+          </div>
+        </div>
+
+        <!-- Cuenta receptora -->
+        <div class="rounded-xl border border-slate-100 bg-slate-50 p-3">
+          <span class="text-slate-400 font-medium">Cuenta Destino de la Cofraternidad:</span>
+          <p id="modal-payment-account" class="font-semibold text-pine mt-0.5">Banesco · Cta. Corriente *9102</p>
+        </div>
+
+        <!-- Visualizador de Comprobante / Recibo Digital -->
+        <div>
+          <span class="block text-xs font-bold text-slate-700 mb-2">Comprobante o Soporte Digital:</span>
+          <div id="modal-receipt-preview-box" class="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-[#f9fbf9] p-5 text-center">
+            <!-- Inyectado dinámicamente -->
+          </div>
+        </div>
+
+        <!-- Observaciones / Nota de auditoría -->
+        <div>
+          <label for="modal-payment-notes" class="block font-bold text-slate-700 mb-1">Notas de validación / Observaciones:</label>
+          <textarea id="modal-payment-notes" rows="2" placeholder="Opcional: motivo de rechazo o nota de verificación bancaria..." class="w-full rounded-xl border border-slate-200 p-3 text-xs outline-none focus:border-pine"></textarea>
+        </div>
+      </div>
+
+      <!-- Botones de Acción del Modal -->
+      <div id="modal-payment-actions" class="mt-6 flex items-center justify-end gap-2.5 border-t border-slate-100 pt-4">
+        <!-- Botones inyectados según el estado del pago -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 2: REGISTRAR PAGO MANUAL / EN CAJA -->
+  <!-- ============================================================== -->
+  <div id="new-payment-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-ink/40 backdrop-blur-sm">
+    <div class="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-modal">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-bold text-ink">Registrar Pago en Caja / Administrativo</h3>
+        <button onclick="closeNewPaymentModal()" class="grid h-8 w-8 place-items-center rounded-full text-slate-400 hover:bg-slate-100">&times;</button>
+      </div>
+      <form id="new-payment-form" class="mt-4 space-y-4 text-xs">
+        <div>
+          <label for="new-pay-church" class="block font-bold mb-1">Iglesia Afiliada</label>
+          <select id="new-pay-church" required class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 font-semibold outline-none focus:border-pine">
+            <!-- Opciones cargadas dinámicamente -->
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="new-pay-usd" class="block font-bold mb-1">Monto en USD</label>
+            <input id="new-pay-usd" type="number" step="0.01" required placeholder="0.00" class="h-10 w-full rounded-xl border border-slate-200 px-3 font-bold outline-none focus:border-pine">
+          </div>
+          <div>
+            <label for="new-pay-method" class="block font-bold mb-1">Método de Pago</label>
+            <select id="new-pay-method" class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-pine">
+              <option>Pago Móvil</option>
+              <option>Transferencia Bancaria</option>
+              <option>Efectivo / Divisas en Caja</option>
+              <option>Zelle</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="new-pay-ref" class="block font-bold mb-1">Referencia Bancaria</label>
+            <input id="new-pay-ref" required placeholder="Ej: 094821" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
+          </div>
+          <div>
+            <label for="new-pay-status" class="block font-bold mb-1">Estado Inmediato</label>
+            <select id="new-pay-status" class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 font-semibold text-emerald-700 outline-none focus:border-pine">
+              <option value="Aprobado">Aprobado directamente</option>
+              <option value="Pendiente">Marcar como Pendiente</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="new-pay-concept" class="block font-bold mb-1">Concepto</label>
+          <input id="new-pay-concept" required value="Aporte Mensual Ordinario" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
+        </div>
+        <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          <button type="button" onclick="closeNewPaymentModal()" class="rounded-xl border border-slate-200 px-4 py-2.5 font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button>
+          <button type="submit" class="rounded-xl bg-pine px-4 py-2.5 font-bold text-white hover:bg-pine-dark">Guardar Pago</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 3: AFILIAR NUEVA IGLESIA -->
+  <!-- ============================================================== -->
+  <div id="new-church-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-ink/40 backdrop-blur-sm">
+    <div class="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-modal">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-bold text-ink">Afiliar Nueva Congregación / Iglesia</h3>
+        <button onclick="closeNewChurchModal()" class="grid h-8 w-8 place-items-center rounded-full text-slate-400 hover:bg-slate-100">&times;</button>
+      </div>
+      <form id="new-church-form" class="mt-4 space-y-3 text-xs">
+        <div>
+          <label for="church-form-name" class="block font-bold mb-1">Nombre de la Iglesia</label>
+          <input id="church-form-name" required placeholder="Ej. Iglesia Cristiana Pentecostal Bethel" class="h-10 w-full rounded-xl border border-slate-200 px-3 font-semibold outline-none focus:border-pine">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="church-form-pastor" class="block font-bold mb-1">Pastor Principal</label>
+            <input id="church-form-pastor" required placeholder="Ej. Pastor Pedro Rodríguez" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
+          </div>
+          <div>
+            <label for="church-form-rif" class="block font-bold mb-1">RIF / Registro</label>
+            <input id="church-form-rif" placeholder="Ej. J-40291834-0" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="church-form-phone" class="block font-bold mb-1">Teléfono de Contacto</label>
+            <input id="church-form-phone" placeholder="+58 412 123-4567" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
+          </div>
+          <div>
+            <label for="church-form-city" class="block font-bold mb-1">Ciudad / Estado</label>
+            <input id="church-form-city" required placeholder="Ej. Valencia, Carabobo" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
+          </div>
+        </div>
+        <div>
+          <label for="church-form-address" class="block font-bold mb-1">Dirección del Templo</label>
+          <input id="church-form-address" placeholder="Ej. Av. Bolívar Norte, Sector San José" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="church-form-members" class="block font-bold mb-1">Número Aprox. Miembros</label>
+            <input id="church-form-members" type="number" value="100" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
+          </div>
+          <div>
+            <label for="church-form-status" class="block font-bold mb-1">Estatus Inicial</label>
+            <select id="church-form-status" class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 font-semibold outline-none focus:border-pine">
+              <option value="Solvente">Solvente</option>
+              <option value="En proceso">En proceso de afiliación</option>
+              <option value="En mora">En mora</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
+          <button type="button" onclick="closeNewChurchModal()" class="rounded-xl border border-slate-200 px-4 py-2.5 font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button>
+          <button type="submit" class="rounded-xl bg-pine px-4 py-2.5 font-bold text-white hover:bg-pine-dark">Registrar Iglesia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 4: FICHA DETALLADA DE LA IGLESIA -->
+  <!-- ============================================================== -->
+  <div id="church-detail-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-ink/40 backdrop-blur-sm">
+    <div class="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-6 shadow-modal custom-scrollbar">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-coral">Ficha Institucional</span>
+          <h3 id="church-modal-name" class="text-lg font-bold text-ink">Iglesia El Buen Pastor</h3>
+        </div>
+        <button onclick="closeChurchDetailModal()" class="grid h-8 w-8 place-items-center rounded-full text-slate-400 hover:bg-slate-100">&times;</button>
+      </div>
+
+      <div class="mt-5 space-y-5 text-xs">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="rounded-xl bg-slate-50 p-3 border border-slate-100">
+            <span class="text-slate-400 font-medium">Pastor Responsable</span>
+            <p id="church-modal-pastor" class="font-bold text-ink mt-0.5">-</p>
+          </div>
+          <div class="rounded-xl bg-slate-50 p-3 border border-slate-100">
+            <span class="text-slate-400 font-medium">RIF Jurídico</span>
+            <p id="church-modal-rif" class="font-bold text-ink mt-0.5">-</p>
+          </div>
+          <div class="rounded-xl bg-slate-50 p-3 border border-slate-100">
+            <span class="text-slate-400 font-medium">Estatus Actual</span>
+            <p id="church-modal-status-pill" class="mt-0.5">-</p>
+          </div>
+          <div class="rounded-xl bg-slate-50 p-3 border border-slate-100">
+            <span class="text-slate-400 font-medium">Membresía</span>
+            <p id="church-modal-members" class="font-bold text-pine mt-0.5">-</p>
+          </div>
+        </div>
+
+        <div class="rounded-xl bg-canvas p-4 border border-slate-200/80">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-slate-600">Ubicación y Sede:</span>
+            <span id="church-modal-city" class="font-bold text-slate-700">-</span>
+          </div>
+          <p id="church-modal-address" class="text-slate-500 mt-1 font-medium">-</p>
+          <div class="mt-2 flex gap-4 text-slate-500">
+            <span>📞 <strong id="church-modal-phone" class="font-medium text-slate-700">-</strong></span>
+            <span>✉️ <strong id="church-modal-email" class="font-medium text-slate-700">-</strong></span>
+          </div>
+        </div>
+
+        <!-- Historial de Pagos de la Iglesia -->
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="font-bold text-ink text-sm">Historial de Pagos Registrados</h4>
+            <span id="church-modal-payments-count" class="text-slate-400 text-[11px]">0 pagos</span>
+          </div>
+          <div class="rounded-xl border border-slate-100 overflow-hidden">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-[10px] text-slate-400 uppercase tracking-wider">
+                <tr>
+                  <th class="p-2.5">Fecha</th>
+                  <th class="p-2.5">Concepto</th>
+                  <th class="p-2.5">Monto USD</th>
+                  <th class="p-2.5">Estado</th>
+                </tr>
+              </thead>
+              <tbody id="church-modal-payments-tbody" class="divide-y divide-slate-100">
+                <!-- Inyectado -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Trámites Legales de la Iglesia -->
+        <div>
+          <h4 class="font-bold text-ink text-sm mb-2">Trámites Legales en Trámite</h4>
+          <div id="church-modal-legal-list" class="space-y-2">
+            <!-- Inyectado -->
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-2 border-t border-slate-100 pt-4">
+        <button onclick="closeChurchDetailModal()" class="rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-200">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL 5: GESTIÓN DE EXPEDIENTE / NUEVO TRÁMITE LEGAL -->
+  <!-- ============================================================== -->
+  <div id="legal-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-ink/40 backdrop-blur-sm">
+    <div class="relative w-full max-w-lg rounded-3xl bg-white p-6 shadow-modal">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-coral">Consultoría Jurídica</span>
+          <h3 id="legal-modal-title" class="text-base font-bold text-ink">Aperturar Trámite Legal</h3>
+        </div>
+        <button onclick="closeLegalModal()" class="grid h-8 w-8 place-items-center rounded-full text-slate-400 hover:bg-slate-100">&times;</button>
+      </div>
+
+      <form id="legal-form" class="mt-4 space-y-3.5 text-xs">
+        <input type="hidden" id="legal-form-id">
+        <div>
+          <label for="legal-form-church" class="block font-bold mb-1">Iglesia Solicitante</label>
+          <select id="legal-form-church" required class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 font-semibold outline-none focus:border-pine">
+            <!-- Inyectado dinámicamente -->
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="legal-form-category" class="block font-bold mb-1">Área del Trámite</label>
+            <select id="legal-form-category" class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-pine">
+              <option>Inmuebles y Terrenos</option>
+              <option>Constitución Legal</option>
+              <option>Solvencia</option>
+              <option>Asesoría Laboral</option>
+            </select>
+          </div>
+          <div>
+            <label for="legal-form-status" class="block font-bold mb-1">Fase / Estatus</label>
+            <select id="legal-form-status" class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 font-semibold text-pine outline-none focus:border-pine">
+              <option value="Recibido">Recibido</option>
+              <option value="En análisis">En análisis</option>
+              <option value="En Notaría/Registro">En Notaría / Registro</option>
+              <option value="Concluido">Concluido</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="legal-form-name" class="block font-bold mb-1">Título o Motivo de la Solicitud</label>
+          <input id="legal-form-name" required placeholder="Ej. Título Supletorio Templo Anexo" class="h-10 w-full rounded-xl border border-slate-200 px-3 font-semibold outline-none focus:border-pine">
+        </div>
+        <div>
+          <label for="legal-form-desc" class="block font-bold mb-1">Descripción del Requerimiento</label>
+          <textarea id="legal-form-desc" rows="3" required placeholder="Detalles de la propiedad, asamblea, personas involucradas..." class="w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-pine"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="legal-form-lawyer" class="block font-bold mb-1">Abogado Asignado</label>
+            <select id="legal-form-lawyer" class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-pine">
+              <option>Dra. Mariela Ramos</option>
+              <option>Dr. Alejandro Peña</option>
+              <option>Consultor Externo SAREN</option>
+            </select>
+          </div>
+          <div>
+            <label for="legal-form-priority" class="block font-bold mb-1">Prioridad</label>
+            <select id="legal-form-priority" class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-pine">
+              <option>Normal</option>
+              <option>Media</option>
+              <option>Alta</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="legal-form-notes" class="block font-bold mb-1">Bitácora / Avance Actual</label>
+          <input id="legal-form-notes" placeholder="Ej. Redacción de documento preliminar lista para firmas" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
+        </div>
+        <div class="flex justify-end gap-2 pt-4 border-t border-slate-100">
+          <button type="button" onclick="closeLegalModal()" class="rounded-xl border border-slate-200 px-4 py-2.5 font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button>
+          <button type="submit" class="rounded-xl bg-pine px-4 py-2.5 font-bold text-white hover:bg-pine-dark">Guardar Expediente</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST DE NOTIFICACIÓN -->
+  <div id="toast" role="status" aria-live="polite" class="fixed bottom-24 left-1/2 z-50 hidden -translate-x-1/2 rounded-full bg-ink px-6 py-3 text-xs font-semibold text-white shadow-soft md:bottom-8"></div>
+
+  <!-- SCRIPTS -->
+  <script src="store.js"></script>
+  <script>
+    (function protectAdminRoute() {
+      const session = CofraternidadStore.getSession();
+      if (!session) window.location.replace('login.html');
+      else if (session.role !== 'admin') window.location.replace('app-movil.html');
+    })();
+    function logoutUser() {
+      CofraternidadStore.logout();
+      window.location.replace('login.html');
+    }
+  </script>
+  <script>
+    // ESTADO DE LA APLICACIÓN CENTRAL
+    let currentTab = 'inicio';
+    let activePaymentViewing = null;
+
+    // Elementos del DOM
+    const toast = document.getElementById('toast');
+    const paymentRows = document.getElementById('payment-table-rows');
+    const paymentSearch = document.getElementById('payment-search');
+    const paymentStatusFilter = document.getElementById('payment-status-filter');
+    const paymentMethodFilter = document.getElementById('payment-method-filter');
+    const paymentsEmpty = document.getElementById('payments-empty-state');
+
+    // Navegación entre vistas
+    function navigate(tabName) {
+      currentTab = tabName;
+      document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+      
+      const targetView = document.getElementById(`view-${tabName}`);
+      if (targetView) targetView.classList.remove('hidden');
+
+      // Actualizar botones de navegación
+      ['inicio', 'pagos', 'iglesias', 'tramites', 'soporte'].forEach(t => {
+        const btn = document.getElementById(`nav-${t}`);
+        if (btn) {
+          if (t === tabName) {
+            btn.classList.add('nav-active');
+          } else {
+            btn.classList.remove('nav-active');
+          }
+        }
+      });
+
+      // Título de la cabecera
+      const titles = {
+        inicio: 'Resumen General',
+        pagos: 'Bandeja de Pagos y Validación',
+        iglesias: 'Directorio de Iglesias Afiliadas',
+        tramites: 'Bandeja de Trámites Legales',
+        soporte: 'Soporte y Consultoría'
+      };
+      document.getElementById('page-title').textContent = titles[tabName] || 'Control Central';
+
+      // Renderizar la vista activa
+      renderCurrentView();
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.remove('hidden');
+      toast.classList.add('toast-in');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('toast-in');
+      }, 2600);
+    }
+
+    function statusPill(status) {
+      const styles = {
+        Pendiente: 'bg-orange-50 text-orange-700 border border-orange-200/60',
+        Aprobado: 'bg-emerald-50 text-emerald-700 border border-emerald-200/60',
+        Rechazado: 'bg-rose-50 text-rose-700 border border-rose-200/60'
+      };
+      return `<span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${styles[status] || 'bg-slate-100 text-slate-700'}"><span class="h-1.5 w-1.5 rounded-full bg-current"></span>${status}</span>`;
+    }
+
+    function legalStatusPill(status) {
+      const styles = {
+        'Recibido': 'bg-blue-50 text-blue-700 border border-blue-200',
+        'En análisis': 'bg-amber-50 text-amber-700 border border-amber-200',
+        'En Notaría/Registro': 'bg-purple-50 text-purple-700 border border-purple-200',
+        'Concluido': 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+      };
+      return `<span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${styles[status] || 'bg-slate-100 text-slate-600'}"><span class="h-1.5 w-1.5 rounded-full bg-current"></span>${status}</span>`;
+    }
+
+    // RENDERIZADO DE LA BANDEJA DE PAGOS
+    function renderPayments() {
+      const payments = CofraternidadStore.getPayments();
+      const query = (paymentSearch.value || '').toLowerCase().trim();
+      const statusFilter = paymentStatusFilter.value;
+      const methodFilter = paymentMethodFilter.value;
+
+      const filtered = payments.filter(p => {
+        const matchesQuery = (p.church || '').toLowerCase().includes(query) ||
+                             (p.ref || '').toLowerCase().includes(query) ||
+                             (p.concept || '').toLowerCase().includes(query);
+        const matchesStatus = statusFilter === 'Todos' || p.status === statusFilter;
+        const matchesMethod = methodFilter === 'Todos' || (p.method || '').toLowerCase().includes(methodFilter.toLowerCase());
+        return matchesQuery && matchesStatus && matchesMethod;
+      });
+
+      if (!filtered.length) {
+        paymentRows.innerHTML = '';
+        paymentsEmpty.classList.remove('hidden');
+      } else {
+        paymentsEmpty.classList.add('hidden');
+        paymentRows.innerHTML = filtered.map(p => `
+          <tr class="border-b border-slate-100 hover:bg-slate-50/50 transition">
+            <td class="py-3.5">
+              <div class="flex items-center gap-3">
+                <div class="grid h-9 w-9 shrink-0 place-items-center rounded-xl ${p.color || 'bg-slate-100 text-slate-700'} text-xs font-bold shadow-sm">${p.initials || 'IG'}</div>
+                <div class="min-w-0">
+                  <p class="font-bold text-sm text-ink truncate">${p.church}</p>
+                  <p class="text-[11px] text-slate-400">${p.concept} · <span class="font-medium text-slate-500">${p.date}</span></p>
+                </div>
+              </div>
+            </td>
+            <td class="py-3.5 text-sm font-bold text-pine">${CofraternidadStore.formatUSD(p.usdAmount)}</td>
+            <td class="py-3.5 text-xs font-medium text-slate-600">${CofraternidadStore.formatBs(p.bsAmount)}</td>
+            <td class="py-3.5">
+              <span class="font-mono text-xs font-bold text-slate-700">${p.ref}</span>
+              <span class="block text-[10px] text-slate-400">${p.method}</span>
+            </td>
+            <td class="py-3.5">${statusPill(p.status)}</td>
+            <td class="py-3.5 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                <button onclick="inspectPayment(${p.id})" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:border-pine hover:text-pine transition shadow-xs" title="Ver comprobante y detalle">
+                  Ver detalle
+                </button>
+                ${p.status === 'Pendiente' ? `
+                  <button onclick="quickApprove(${p.id})" class="rounded-lg bg-pine px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-pine-dark transition shadow-xs" title="Aprobar de inmediato">
+                    Aprobar
+                  </button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      // Actualizar contadores
+      updateGlobalCounters();
+    }
+
+    // RENDERIZADO DEL DIRECTORIO DE IGLESIAS
+    function renderChurches() {
+      const churches = CofraternidadStore.getChurches();
+      const search = (document.getElementById('church-search').value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('church-status-filter').value;
+      const grid = document.getElementById('churches-grid');
+      const empty = document.getElementById('churches-empty-state');
+
+      const filtered = churches.filter(c => {
+        const matchesSearch = c.name.toLowerCase().includes(search) ||
+                              c.pastor.toLowerCase().includes(search) ||
+                              c.city.toLowerCase().includes(search);
+        const matchesStatus = statusFilter === 'Todos' || c.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      });
+
+      document.getElementById('churches-badge-count').textContent = `${churches.length} sedes`;
+
+      if (!filtered.length) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      grid.innerHTML = filtered.map(c => {
+        const statusColors = {
+          'Solvente': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+          'En mora': 'bg-rose-50 text-rose-700 border-rose-200',
+          'En proceso': 'bg-blue-50 text-blue-700 border-blue-200'
+        };
+
+        return `
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md hover:border-pine/40 flex flex-col justify-between">
+            <div>
+              <div class="flex items-start justify-between gap-2">
+                <div class="flex items-center gap-3">
+                  <div class="grid h-10 w-10 shrink-0 place-items-center rounded-xl ${c.color} text-xs font-bold shadow-xs">${c.initials}</div>
+                  <div class="min-w-0">
+                    <h3 class="font-bold text-sm text-ink truncate">${c.name}</h3>
+                    <p class="text-xs text-slate-500 font-medium">${c.pastor}</p>
+                  </div>
+                </div>
+                <span class="rounded-full px-2 py-0.5 text-[10px] font-bold border ${statusColors[c.status] || 'bg-slate-100 text-slate-700'}">${c.status}</span>
+              </div>
+
+              <div class="mt-4 space-y-1.5 text-xs text-slate-600 border-t border-slate-100 pt-3">
+                <p class="flex items-center justify-between"><span class="text-slate-400">RIF:</span> <span class="font-mono font-semibold">${c.rif}</span></p>
+                <p class="flex items-center justify-between"><span class="text-slate-400">Ubicación:</span> <span class="font-medium truncate max-w-[170px]">${c.city}</span></p>
+                <p class="flex items-center justify-between"><span class="text-slate-400">Membresía:</span> <span class="font-bold text-pine">${c.members} miembros</span></p>
+                <p class="flex items-center justify-between"><span class="text-slate-400">Último aporte:</span> <span class="text-[11px] text-slate-500">${c.lastPaymentDate || 'Sin registro'}</span></p>
+              </div>
+            </div>
+
+            <div class="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+              <button onclick="openChurchDetailModal(${c.id})" class="text-xs font-bold text-pine hover:underline">Ver Ficha y Pagos →</button>
+              <button onclick="quickRegisterPaymentForChurch(${c.id})" class="rounded-lg bg-mint px-2.5 py-1 text-[11px] font-bold text-pine hover:bg-pine hover:text-white transition">+ Aporte</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // RENDERIZADO DE TRÁMITES LEGALES
+    function renderLegal() {
+      const requests = CofraternidadStore.getLegalRequests();
+      const search = (document.getElementById('legal-search').value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('legal-status-filter').value;
+      const categoryFilter = document.getElementById('legal-category-filter').value;
+      const list = document.getElementById('legal-requests-list');
+      const empty = document.getElementById('legal-empty-state');
+
+      const filtered = requests.filter(r => {
+        const matchesSearch = r.title.toLowerCase().includes(search) ||
+                              r.church.toLowerCase().includes(search) ||
+                              r.lawyer.toLowerCase().includes(search);
+        const matchesStatus = statusFilter === 'Todos' || r.status === statusFilter;
+        const matchesCategory = categoryFilter === 'Todos' || r.category === categoryFilter;
+        return matchesSearch && matchesStatus && matchesCategory;
+      });
+
+      if (!filtered.length) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+
+      empty.classList.add('hidden');
+      list.innerHTML = filtered.map(r => `
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:shadow-md hover:border-pine/30">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-600">${r.category}</span>
+                <span class="text-xs text-slate-400">Iniciado el ${r.date}</span>
+              </div>
+              <h3 class="text-base font-bold text-ink mt-1">${r.title}</h3>
+              <p class="text-xs font-semibold text-pine">${r.church}</p>
+            </div>
+            <div class="flex items-center gap-3">
+              ${legalStatusPill(r.status)}
+              <button onclick="openEditLegalModal(${r.id})" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:border-pine hover:text-pine transition shadow-xs">
+                Gestionar Caso
+              </button>
+            </div>
+          </div>
+          <p class="mt-3 text-xs text-slate-600 leading-relaxed">${r.description}</p>
+          <div class="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2 text-slate-500">
+              <span>⚖️ Asesor responsable: <strong class="text-ink">${r.lawyer}</strong></span>
+            </div>
+            <div class="text-[11px] text-slate-500 font-medium italic">
+              Avance: "${r.notes}"
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // RENDERIZADO DEL INICIO / DASHBOARD
+    function renderInicio() {
+      const payments = CofraternidadStore.getPayments();
+      const churches = CofraternidadStore.getChurches();
+      const legal = CofraternidadStore.getLegalRequests();
+      const config = CofraternidadStore.getConfig();
+
+      // Métricas
+      const pendingCount = payments.filter(p => p.status === 'Pendiente').length;
+      const approvedPayments = payments.filter(p => p.status === 'Aprobado');
+      const totalUSD = approvedPayments.reduce((sum, p) => sum + (p.usdAmount || 0), 0);
+      const totalBs = approvedPayments.reduce((sum, p) => sum + (p.bsAmount || 0), 0);
+      const solventChurches = churches.filter(c => c.status === 'Solvente').length;
+      const activeLegal = legal.filter(l => l.status !== 'Concluido').length;
+
+      document.getElementById('stat-pending-payments').textContent = String(pendingCount).padStart(2, '0');
+      document.getElementById('stat-total-usd').textContent = CofraternidadStore.formatUSD(totalUSD);
+      document.getElementById('stat-total-bs').textContent = 'Equiv. ' + CofraternidadStore.formatBs(totalBs);
+      document.getElementById('stat-total-churches').textContent = churches.length;
+      document.getElementById('stat-churches-solvent').textContent = `${solventChurches} solventes`;
+      document.getElementById('stat-active-legal').textContent = activeLegal;
+
+      // Progreso de recaudación
+      const percentSolvent = churches.length > 0 ? Math.round((solventChurches / churches.length) * 100) : 0;
+      document.getElementById('recaudacion-progress-text').textContent = `${percentSolvent}% de iglesias solventes (${solventChurches}/${churches.length})`;
+      document.getElementById('recaudacion-progress-bar').style.width = `${percentSolvent}%`;
+
+      // Desglose métodos
+      const pmCount = payments.filter(p => (p.method || '').includes('Pago Móvil')).length;
+      const transCount = payments.filter(p => (p.method || '').includes('Transferencia')).length;
+      const zelleCount = payments.filter(p => (p.method || '').includes('Zelle') || (p.method || '').includes('Divisas')).length;
+
+      document.getElementById('metodo-pm-count').textContent = `${pmCount} aportes`;
+      document.getElementById('metodo-trans-count').textContent = `${transCount} aportes`;
+      document.getElementById('metodo-zelle-count').textContent = `${zelleCount} aportes`;
+
+      // Actividad reciente
+      const recentContainer = document.getElementById('inicio-recent-activity');
+      const recentItems = [...payments].slice(0, 4);
+
+      recentContainer.innerHTML = recentItems.map(item => `
+        <div class="pt-3 first:pt-0">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-ink truncate">${item.church}</span>
+            <span class="font-bold text-pine">${CofraternidadStore.formatUSD(item.usdAmount)}</span>
+          </div>
+          <div class="mt-0.5 flex items-center justify-between text-[11px] text-slate-400">
+            <span>${item.date}</span>
+            <span>${statusPill(item.status)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Actualizar contadores y badges globales
+    function updateGlobalCounters() {
+      const payments = CofraternidadStore.getPayments();
+      const legal = CofraternidadStore.getLegalRequests();
+      const config = CofraternidadStore.getConfig();
+
+      const pending = payments.filter(p => p.status === 'Pendiente').length;
+      const activeLegal = legal.filter(l => l.status !== 'Concluido').length;
+
+      const navPendingBadge = document.getElementById('nav-pending-badge');
+      navPendingBadge.textContent = pending;
+      navPendingBadge.classList.toggle('hidden', pending === 0);
+
+      const navLegalBadge = document.getElementById('nav-legal-badge');
+      navLegalBadge.textContent = activeLegal;
+      navLegalBadge.classList.toggle('hidden', activeLegal === 0);
+
+      const topDot = document.getElementById('top-alert-dot');
+      if (topDot) topDot.classList.toggle('hidden', pending === 0);
+
+      document.getElementById('sidebar-bcv-rate').textContent = `Bs. ${Number(config.bcvRate || 45.50).toLocaleString('es-VE', { minimumFractionDigits: 2 })}`;
+      const configInput = document.getElementById('config-bcv');
+      if (configInput) configInput.value = config.bcvRate || 45.50;
+    }
+
+    function renderCurrentView() {
+      if (currentTab === 'inicio') renderInicio();
+      if (currentTab === 'pagos') renderPayments();
+      if (currentTab === 'iglesias') renderChurches();
+      if (currentTab === 'tramites') renderLegal();
+      updateGlobalCounters();
+    }
+
+    // ==============================================================
+    // ACCIONES DE PAGOS (INSPECCIÓN, APROBACIÓN, RECHAZO)
+    // ==============================================================
+    function inspectPayment(id) {
+      const p = CofraternidadStore.getPayment(id);
+      if (!p) return;
+      activePaymentViewing = p;
+
+      document.getElementById('modal-payment-church').textContent = p.church;
+      document.getElementById('modal-payment-usd').textContent = CofraternidadStore.formatUSD(p.usdAmount);
+      document.getElementById('modal-payment-bs').textContent = CofraternidadStore.formatBs(p.bsAmount);
+      document.getElementById('modal-payment-ref').textContent = p.ref;
+      document.getElementById('modal-payment-method').textContent = p.method;
+      document.getElementById('modal-payment-date').textContent = p.date;
+      document.getElementById('modal-payment-concept').textContent = p.concept;
+      document.getElementById('modal-payment-account').textContent = p.accountDestination || 'Banesco · Cta. Corriente *9102';
+      document.getElementById('modal-payment-notes').value = p.notes || '';
+
+      // Renderizar comprobante / recibo gráfico
+      const previewBox = document.getElementById('modal-receipt-preview-box');
+      if (p.receiptUrl) {
+        previewBox.innerHTML = `
+          <div class="max-h-64 overflow-hidden rounded-xl border border-slate-200">
+            <img src="${p.receiptUrl}" alt="Comprobante de pago" class="w-full h-auto object-contain">
+          </div>
+          <p class="mt-2 text-[11px] text-slate-500 font-medium">Comprobante adjuntado por la iglesia</p>
+        `;
+      } else {
+        // Generador de comprobante bancario simulado de alta fidelidad
+        previewBox.innerHTML = `
+          <div class="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-4 shadow-sm text-left">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <span class="font-bold text-pine text-xs">VOUCHER BANCARIO DIGITAL</span>
+              <span class="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700">TRANSACCIÓN EXITOSA</span>
+            </div>
+            <div class="mt-2.5 space-y-1 text-[11px]">
+              <div class="flex justify-between"><span class="text-slate-400">Canal:</span> <span class="font-semibold text-slate-700">${p.method}</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Referencia:</span> <span class="font-mono font-bold text-slate-800">${p.ref}</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Emisor:</span> <span class="font-medium text-slate-700 truncate max-w-[180px]">${p.church}</span></div>
+              <div class="flex justify-between"><span class="text-slate-400">Destino:</span> <span class="font-medium text-slate-700">${p.accountDestination || 'Cofraternidad de Iglesias'}</span></div>
+              <div class="mt-2 pt-2 border-t border-slate-100 flex justify-between items-baseline">
+                <span class="font-bold text-slate-600">Total debitado:</span>
+                <span class="font-bold text-sm text-pine">${CofraternidadStore.formatBs(p.bsAmount)} (${CofraternidadStore.formatUSD(p.usdAmount)})</span>
+              </div>
+            </div>
+          </div>
+          <p class="mt-2 text-[10px] text-slate-400">Registro digital validado con el identificador de referencia</p>
+        `;
+      }
+
+      // Botones de acción según el estatus
+      const actionsContainer = document.getElementById('modal-payment-actions');
+      if (p.status === 'Pendiente') {
+        actionsContainer.innerHTML = `
+          <button onclick="closePaymentModal()" class="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">Cerrar</button>
+          <button onclick="handleModalStatusChange('Rechazado')" class="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-100">Rechazar Pago</button>
+          <button onclick="handleModalStatusChange('Aprobado')" class="rounded-xl bg-pine px-5 py-2 text-xs font-bold text-white hover:bg-pine-dark">Aprobar Pago</button>
+        `;
+      } else {
+        actionsContainer.innerHTML = `
+          <span class="text-xs text-slate-400 mr-auto">Estatus actual: <strong class="text-slate-700">${p.status}</strong></span>
+          <button onclick="handleModalStatusChange('${p.status === 'Aprobado' ? 'Pendiente' : 'Aprobado'}')" class="rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50">Cambiar a ${p.status === 'Aprobado' ? 'Pendiente' : 'Aprobado'}</button>
+          <button onclick="closePaymentModal()" class="rounded-xl bg-pine px-4 py-2 text-xs font-bold text-white hover:bg-pine-dark">Listo</button>
+        `;
+      }
+
+      document.getElementById('payment-modal').classList.remove('hidden');
+      document.getElementById('payment-modal').classList.add('flex');
+    }
+
+    function closePaymentModal() {
+      document.getElementById('payment-modal').classList.add('hidden');
+      document.getElementById('payment-modal').classList.remove('flex');
+      activePaymentViewing = null;
+    }
+
+    function handleModalStatusChange(newStatus) {
+      if (!activePaymentViewing) return;
+      const notes = document.getElementById('modal-payment-notes').value;
+      CofraternidadStore.updatePaymentStatus(activePaymentViewing.id, newStatus, notes);
+      closePaymentModal();
+      showToast(newStatus === 'Aprobado' ? 'Pago aprobado y registrado' : 'Pago actualizado a ' + newStatus);
+      renderCurrentView();
+    }
+
+    function quickApprove(id) {
+      CofraternidadStore.updatePaymentStatus(id, 'Aprobado', 'Aprobado desde la bandeja rápida');
+      showToast('Pago aprobado con éxito');
+      renderCurrentView();
+    }
+
+    // Modal Registrar Pago Manual
+    function openRegisterPaymentModal() {
+      const churches = CofraternidadStore.getChurches();
+      const select = document.getElementById('new-pay-church');
+      select.innerHTML = churches.map(c => `<option value="${c.id}">${c.name} (${c.city})</option>`).join('');
+      document.getElementById('new-payment-modal').classList.remove('hidden');
+      document.getElementById('new-payment-modal').classList.add('flex');
+    }
+
+    function closeNewPaymentModal() {
+      document.getElementById('new-payment-modal').classList.add('hidden');
+      document.getElementById('new-payment-modal').classList.remove('flex');
+    }
+
+    document.getElementById('new-payment-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const churchId = document.getElementById('new-pay-church').value;
+      const usdAmount = parseFloat(document.getElementById('new-pay-usd').value) || 0;
+      const method = document.getElementById('new-pay-method').value;
+      const ref = document.getElementById('new-pay-ref').value;
+      const status = document.getElementById('new-pay-status').value;
+      const concept = document.getElementById('new-pay-concept').value;
+
+      const newPay = CofraternidadStore.addPayment({
+        churchId,
+        usdAmount,
+        method,
+        ref,
+        concept,
+        notes: 'Pago registrado en caja administrativa'
+      });
+
+      if (status === 'Aprobado') {
+        CofraternidadStore.updatePaymentStatus(newPay.id, 'Aprobado', 'Aprobado en caja');
+      }
+
+      closeNewPaymentModal();
+      e.target.reset();
+      showToast('Pago registrado correctamente');
+      renderCurrentView();
+    });
+
+    // ==============================================================
+    // ACCIONES DE IGLESIAS
+    // ==============================================================
+    function openNewChurchModal() {
+      document.getElementById('new-church-modal').classList.remove('hidden');
+      document.getElementById('new-church-modal').classList.add('flex');
+    }
+
+    function closeNewChurchModal() {
+      document.getElementById('new-church-modal').classList.add('hidden');
+      document.getElementById('new-church-modal').classList.remove('flex');
+    }
+
+    document.getElementById('new-church-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const church = CofraternidadStore.addChurch({
+        name: document.getElementById('church-form-name').value,
+        pastor: document.getElementById('church-form-pastor').value,
+        rif: document.getElementById('church-form-rif').value,
+        phone: document.getElementById('church-form-phone').value,
+        city: document.getElementById('church-form-city').value,
+        address: document.getElementById('church-form-address').value,
+        members: document.getElementById('church-form-members').value,
+        status: document.getElementById('church-form-status').value
+      });
+
+      closeNewChurchModal();
+      e.target.reset();
+      showToast(`Iglesia "${church.name}" afiliada exitosamente`);
+      renderCurrentView();
+    });
+
+    function openChurchDetailModal(id) {
+      const church = CofraternidadStore.getChurch(id);
+      if (!church) return;
+
+      document.getElementById('church-modal-name').textContent = church.name;
+      document.getElementById('church-modal-pastor').textContent = church.pastor;
+      document.getElementById('church-modal-rif').textContent = church.rif;
+      document.getElementById('church-modal-city').textContent = church.city;
+      document.getElementById('church-modal-address').textContent = church.address || 'Dirección no registrada';
+      document.getElementById('church-modal-phone').textContent = church.phone || 'S/N';
+      document.getElementById('church-modal-email').textContent = church.email || 'S/N';
+      document.getElementById('church-modal-members').textContent = `${church.members} miembros`;
+
+      const statusColors = {
+        'Solvente': 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+        'En mora': 'bg-rose-50 text-rose-700 border border-rose-200',
+        'En proceso': 'bg-blue-50 text-blue-700 border border-blue-200'
+      };
+      document.getElementById('church-modal-status-pill').innerHTML = `<span class="inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${statusColors[church.status] || 'bg-slate-100 text-slate-700'}">${church.status}</span>`;
+
+      // Pagos de esta iglesia
+      const allPayments = CofraternidadStore.getPayments();
+      const churchPayments = allPayments.filter(p => p.churchId === church.id);
+      document.getElementById('church-modal-payments-count').textContent = `${churchPayments.length} registrados`;
+
+      const tbody = document.getElementById('church-modal-payments-tbody');
+      if (!churchPayments.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-3 text-center text-slate-400">Sin pagos registrados</td></tr>`;
+      } else {
+        tbody.innerHTML = churchPayments.map(p => `
+          <tr class="hover:bg-slate-50">
+            <td class="p-2.5 font-medium text-slate-700">${p.date}</td>
+            <td class="p-2.5 font-semibold text-slate-800">${p.concept}</td>
+            <td class="p-2.5 font-bold text-pine">${CofraternidadStore.formatUSD(p.usdAmount)}</td>
+            <td class="p-2.5">${statusPill(p.status)}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Trámites de esta iglesia
+      const allLegal = CofraternidadStore.getLegalRequests();
+      const churchLegal = allLegal.filter(l => l.churchId === church.id);
+      const legalBox = document.getElementById('church-modal-legal-list');
+      if (!churchLegal.length) {
+        legalBox.innerHTML = `<p class="text-slate-400 text-xs italic">No tiene solicitudes legales registradas.</p>`;
+      } else {
+        legalBox.innerHTML = churchLegal.map(l => `
+          <div class="rounded-xl border border-slate-100 bg-slate-50 p-2.5 flex items-center justify-between text-xs">
+            <div>
+              <p class="font-bold text-ink">${l.title}</p>
+              <p class="text-[11px] text-slate-400">${l.category} · ${l.date}</p>
+            </div>
+            ${legalStatusPill(l.status)}
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('church-detail-modal').classList.remove('hidden');
+      document.getElementById('church-detail-modal').classList.add('flex');
+    }
+
+    function closeChurchDetailModal() {
+      document.getElementById('church-detail-modal').classList.add('hidden');
+      document.getElementById('church-detail-modal').classList.remove('flex');
+    }
+
+    function quickRegisterPaymentForChurch(churchId) {
+      openRegisterPaymentModal();
+      document.getElementById('new-pay-church').value = churchId;
+    }
+
+    // ==============================================================
+    // ACCIONES DE TRÁMITES LEGALES
+    // ==============================================================
+    function openNewLegalModal() {
+      const churches = CofraternidadStore.getChurches();
+      const select = document.getElementById('legal-form-church');
+      select.innerHTML = churches.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+      document.getElementById('legal-modal-title').textContent = 'Aperturar Trámite Legal';
+      document.getElementById('legal-form-id').value = '';
+      document.getElementById('legal-form-name').value = '';
+      document.getElementById('legal-form-desc').value = '';
+      document.getElementById('legal-form-status').value = 'Recibido';
+      document.getElementById('legal-form-notes').value = '';
+
+      document.getElementById('legal-modal').classList.remove('hidden');
+      document.getElementById('legal-modal').classList.add('flex');
+    }
+
+    function openEditLegalModal(id) {
+      const req = CofraternidadStore.getLegalRequests().find(r => r.id === id);
+      if (!req) return;
+
+      openNewLegalModal();
+      document.getElementById('legal-modal-title').textContent = 'Gestionar Expediente Jurídico';
+      document.getElementById('legal-form-id').value = req.id;
+      document.getElementById('legal-form-church').value = req.churchId;
+      document.getElementById('legal-form-category').value = req.category;
+      document.getElementById('legal-form-status').value = req.status;
+      document.getElementById('legal-form-name').value = req.title;
+      document.getElementById('legal-form-desc').value = req.description;
+      document.getElementById('legal-form-lawyer').value = req.lawyer;
+      document.getElementById('legal-form-priority').value = req.priority || 'Normal';
+      document.getElementById('legal-form-notes').value = req.notes || '';
+    }
+
+    function closeLegalModal() {
+      document.getElementById('legal-modal').classList.add('hidden');
+      document.getElementById('legal-modal').classList.remove('flex');
+    }
+
+    document.getElementById('legal-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const editId = document.getElementById('legal-form-id').value;
+      const churchId = document.getElementById('legal-form-church').value;
+      const category = document.getElementById('legal-form-category').value;
+      const status = document.getElementById('legal-form-status').value;
+      const title = document.getElementById('legal-form-name').value;
+      const description = document.getElementById('legal-form-desc').value;
+      const lawyer = document.getElementById('legal-form-lawyer').value;
+      const priority = document.getElementById('legal-form-priority').value;
+      const notes = document.getElementById('legal-form-notes').value;
+
+      if (editId) {
+        CofraternidadStore.updateLegalRequestStatus(Number(editId), status, lawyer, notes);
+        showToast('Expediente actualizado exitosamente');
+      } else {
+        CofraternidadStore.addLegalRequest({
+          churchId,
+          title,
+          category,
+          description,
+          lawyer,
+          priority,
+          notes
+        });
+        showToast('Trámite legal creado y asignado');
+      }
+
+      closeLegalModal();
+      renderCurrentView();
+    });
+
+    // Configuración BCV
+    function updateBCVConfig() {
+      const val = parseFloat(document.getElementById('config-bcv').value);
+      if (val && val > 0) {
+        CofraternidadStore.setConfig({ bcvRate: val });
+        showToast('Tasa BCV actualizada a ' + val.toFixed(2) + ' Bs.');
+        renderCurrentView();
+      }
+    }
+
+    // Listeners de búsqueda y filtrado
+    paymentSearch.addEventListener('input', renderPayments);
+    paymentStatusFilter.addEventListener('change', renderPayments);
+    paymentMethodFilter.addEventListener('change', renderPayments);
+
+    document.getElementById('church-search').addEventListener('input', renderChurches);
+    document.getElementById('church-status-filter').addEventListener('change', renderChurches);
+
+    document.getElementById('legal-search').addEventListener('input', renderLegal);
+    document.getElementById('legal-status-filter').addEventListener('change', renderLegal);
+    document.getElementById('legal-category-filter').addEventListener('change', renderLegal);
+
+    // Cierre con Escape
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closePaymentModal();
+        closeNewPaymentModal();
+        closeNewChurchModal();
+        closeChurchDetailModal();
+        closeLegalModal();
+      }
+    });
+
+    // Sincronización en tiempo real con LocalStorage
+    CofraternidadStore.onUpdate(() => {
+      renderCurrentView();
+    });
+
+    // Inicialización al cargar
+    navigate('inicio');
+  </script>
+</body>
+</html>

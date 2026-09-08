@@ -1,0 +1,42 @@
+# Credenciales y variables locales
+.env
+.env.*
+!.env.example
+supabase-config.js
+
+# Dependencias y builds
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Configuración local de editores
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+.idea/
+
+# Archivos temporales y exportaciones locales
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+coverage/
+
+# Datos locales de prueba
+*.local.json
+screenshots/
