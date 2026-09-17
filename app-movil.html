@@ -37,10 +37,13 @@
     .toast-in { animation: toast-in .25s ease-out both; }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .bg-white { background-color: #fbfaf7 !important; }
+    .bg-slate-50 { background-color: #f3f5f1 !important; }
+    .bg-slate-100 { background-color: #e9eeea !important; }
   </style>
 </head>
-<body class="min-h-screen bg-[#eef2ed] text-ink antialiased">
-  <main class="mx-auto min-h-screen max-w-[500px] bg-[#f7faf7] px-4 py-5 sm:my-6 sm:min-h-[850px] sm:rounded-[36px] sm:px-6 sm:py-6 sm:shadow-shell border border-slate-200/70 flex flex-col justify-between">
+<body class="min-h-screen bg-[#e8eee9] text-ink antialiased">
+  <main class="mx-auto min-h-screen max-w-[500px] bg-[#f3f6f2] px-4 py-5 sm:my-6 sm:min-h-[850px] sm:rounded-[36px] sm:px-6 sm:py-6 sm:shadow-shell border border-slate-200/70 flex flex-col justify-between">
     
     <!-- CONTENIDO SUPERIOR Y PESTAÑAS -->
     <div>
@@ -531,7 +534,7 @@
     });
 
     // Envío del reporte de pago
-    document.getElementById('payment-form').addEventListener('submit', e => {
+    document.getElementById('payment-form').addEventListener('submit', async e => {
       e.preventDefault();
       const amountVal = parseFloat(amountInput.value) || 0;
       const method = document.getElementById('method').value;
@@ -549,7 +552,7 @@
         usd = Math.round((bs / config.bcvRate) * 100) / 100;
       }
 
-      CofraternidadStore.addPayment({
+      await CofraternidadStore.addPayment({
         churchId: activeChurchId,
         usdAmount: usd,
         bsAmount: bs,
@@ -689,13 +692,13 @@
       document.getElementById('request-legal-modal').classList.remove('flex');
     }
 
-    document.getElementById('request-legal-form').addEventListener('submit', e => {
+    document.getElementById('request-legal-form').addEventListener('submit', async e => {
       e.preventDefault();
       const category = document.getElementById('req-legal-category').value;
       const title = document.getElementById('req-legal-title').value;
       const description = document.getElementById('req-legal-desc').value;
 
-      CofraternidadStore.addLegalRequest({
+      await CofraternidadStore.addLegalRequest({
         churchId: activeChurchId,
         title,
         category,

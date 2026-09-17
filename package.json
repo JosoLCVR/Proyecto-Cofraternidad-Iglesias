@@ -1,0 +1,14 @@
+{
+  "name": "cofraternidad-iglesias",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.3",
+    "pg": "^8.23.0"
+  }
+}

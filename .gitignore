@@ -2,7 +2,6 @@
 .env
 .env.*
 !.env.example
-supabase-config.js
 
 # Dependencias y builds
 node_modules/

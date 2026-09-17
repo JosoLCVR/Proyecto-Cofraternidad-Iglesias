@@ -15,7 +15,7 @@
             'pine-dark': '#0f3630',
             mint: '#e5f3ed',
             coral: '#e97a5b',
-            canvas: '#f7f8f5'
+            canvas: '#f0f3ef'
           },
           boxShadow: {
             soft: '0 18px 50px rgba(23, 33, 31, 0.07)',
@@ -62,6 +62,10 @@
     .toast-in { animation: toast-in .25s cubic-bezier(0.16, 1, 0.3, 1) both; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .bg-white { background-color: #fbfaf7 !important; }
+    .bg-slate-50 { background-color: #f3f5f1 !important; }
+    .bg-slate-50\/50 { background-color: #f5f6f2 !important; }
+    .bg-slate-50\/70 { background-color: #f1f4ef !important; }
   </style>
 </head>
 <body class="min-h-screen bg-canvas text-ink antialiased">
@@ -120,10 +124,10 @@
       <!-- Footer lateral -->
       <div class="hidden border-t border-slate-100 pt-4 md:block">
         <div class="flex items-center gap-3 px-2 py-2">
-          <div class="grid h-9 w-9 place-items-center rounded-full bg-pine text-xs font-bold text-white shadow-sm">MR</div>
+          <div id="current-user-initials" class="grid h-9 w-9 place-items-center rounded-full bg-pine text-xs font-bold text-white shadow-sm">U</div>
           <div class="min-w-0 flex-1">
-            <p class="truncate text-xs font-bold text-ink">Dra. Mariela Ramos</p>
-            <p class="truncate text-[11px] text-slate-400">Consultoría Jurídica</p>
+            <p id="current-user-name" class="truncate text-xs font-bold text-ink">Usuario</p>
+            <p id="current-user-role" class="truncate text-[11px] text-slate-400">Administrador</p>
           </div>
         </div>
         <button onclick="logoutUser()" class="mt-2 w-full rounded-lg px-2 py-2 text-left text-xs font-semibold text-slate-400 transition hover:bg-red-50 hover:text-red-600">Cerrar sesión</button>
@@ -521,9 +525,6 @@
               <input id="config-bcv" type="number" step="0.10" class="h-9 w-24 rounded-lg border border-slate-200 px-2 text-xs font-bold text-pine text-center">
               <button onclick="updateBCVConfig()" class="rounded-lg bg-pine px-3 py-2 text-xs font-semibold text-white hover:bg-pine-dark">Guardar Tasa</button>
             </div>
-            <button onclick="if(confirm('¿Deseas reiniciar los datos a la demostración inicial?')) { CofraternidadStore.resetToDefaults(); showToast('Datos restaurados'); }" class="text-xs font-medium text-slate-400 hover:text-red-500 underline">
-              Restablecer datos demo de prueba
-            </button>
           </div>
         </section>
       </div>
@@ -575,6 +576,17 @@
           <div>
             <span class="text-slate-400 font-medium">Concepto / Motivo:</span>
             <p id="modal-payment-concept" class="font-semibold text-slate-700 mt-0.5">-</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
+          <div>
+            <span class="text-slate-400 font-medium">Representante:</span>
+            <p id="modal-payment-representative" class="font-semibold text-slate-700 mt-0.5">-</p>
+          </div>
+          <div>
+            <span class="text-slate-400 font-medium">Contacto:</span>
+            <p id="modal-payment-contact" class="font-semibold text-slate-700 mt-0.5 break-words">-</p>
           </div>
         </div>
 
@@ -692,9 +704,13 @@
             <input id="church-form-phone" placeholder="+58 412 123-4567" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
           </div>
           <div>
-            <label for="church-form-city" class="block font-bold mb-1">Ciudad / Estado</label>
-            <input id="church-form-city" required placeholder="Ej. Valencia, Carabobo" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
+            <label for="church-form-email" class="block font-bold mb-1">Correo Electrónico</label>
+            <input id="church-form-email" required type="email" placeholder="contacto@iglesia.org" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
           </div>
+        </div>
+        <div>
+          <label for="church-form-city" class="block font-bold mb-1">Ciudad / Estado</label>
+          <input id="church-form-city" required placeholder="Ej. Valencia, Carabobo" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine">
         </div>
         <div>
           <label for="church-form-address" class="block font-bold mb-1">Dirección del Templo</label>
@@ -894,6 +910,13 @@
       const session = CofraternidadStore.getSession();
       if (!session) window.location.replace('login.html');
       else if (session.role !== 'admin') window.location.replace('app-movil.html');
+      else {
+        const name = session.name || session.email || 'Usuario';
+        const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map(part => part[0]).join('').toUpperCase();
+        document.getElementById('current-user-initials').textContent = initials || 'U';
+        document.getElementById('current-user-name').textContent = name;
+        document.getElementById('current-user-role').textContent = session.role === 'admin' ? 'Administrador' : session.role;
+      }
     })();
     function logoutUser() {
       CofraternidadStore.logout();
@@ -1017,11 +1040,11 @@
             <td class="py-3.5">${statusPill(p.status)}</td>
             <td class="py-3.5 text-right">
               <div class="flex items-center justify-end gap-1.5">
-                <button onclick="inspectPayment(${p.id})" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:border-pine hover:text-pine transition shadow-xs" title="Ver comprobante y detalle">
+                <button onclick='inspectPayment(${JSON.stringify(String(p.id))})' class="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:border-pine hover:text-pine transition shadow-xs" title="Ver comprobante y detalle">
                   Ver detalle
                 </button>
                 ${p.status === 'Pendiente' ? `
-                  <button onclick="quickApprove(${p.id})" class="rounded-lg bg-pine px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-pine-dark transition shadow-xs" title="Aprobar de inmediato">
+                  <button onclick='quickApprove(${JSON.stringify(String(p.id))})' class="rounded-lg bg-pine px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-pine-dark transition shadow-xs" title="Aprobar de inmediato">
                     Aprobar
                   </button>
                 ` : ''}
@@ -1136,7 +1159,7 @@
             </div>
             <div class="flex items-center gap-3">
               ${legalStatusPill(r.status)}
-              <button onclick="openEditLegalModal(${r.id})" class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:border-pine hover:text-pine transition shadow-xs">
+              <button onclick='openEditLegalModal(${JSON.stringify(String(r.id))})' class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:border-pine hover:text-pine transition shadow-xs">
                 Gestionar Caso
               </button>
             </div>
@@ -1256,6 +1279,8 @@
       document.getElementById('modal-payment-method').textContent = p.method;
       document.getElementById('modal-payment-date').textContent = p.date;
       document.getElementById('modal-payment-concept').textContent = p.concept;
+      document.getElementById('modal-payment-representative').textContent = p.representative || 'No registrado';
+      document.getElementById('modal-payment-contact').textContent = [p.registrantEmail, p.registrantPhone].filter(Boolean).join(' · ') || 'No registrado';
       document.getElementById('modal-payment-account').textContent = p.accountDestination || 'Banesco · Cta. Corriente *9102';
       document.getElementById('modal-payment-notes').value = p.notes || '';
 
@@ -1317,19 +1342,27 @@
       activePaymentViewing = null;
     }
 
-    function handleModalStatusChange(newStatus) {
+    async function handleModalStatusChange(newStatus) {
       if (!activePaymentViewing) return;
-      const notes = document.getElementById('modal-payment-notes').value;
-      CofraternidadStore.updatePaymentStatus(activePaymentViewing.id, newStatus, notes);
-      closePaymentModal();
-      showToast(newStatus === 'Aprobado' ? 'Pago aprobado y registrado' : 'Pago actualizado a ' + newStatus);
-      renderCurrentView();
+      try {
+        const notes = document.getElementById('modal-payment-notes').value;
+        await CofraternidadStore.updatePaymentStatus(activePaymentViewing.id, newStatus, notes);
+        closePaymentModal();
+        showToast(newStatus === 'Aprobado' ? 'Pago aprobado y registrado' : 'Pago actualizado a ' + newStatus);
+        renderCurrentView();
+      } catch (error) {
+        showToast(error.message);
+      }
     }
 
-    function quickApprove(id) {
-      CofraternidadStore.updatePaymentStatus(id, 'Aprobado', 'Aprobado desde la bandeja rápida');
-      showToast('Pago aprobado con éxito');
-      renderCurrentView();
+    async function quickApprove(id) {
+      try {
+        await CofraternidadStore.updatePaymentStatus(id, 'Aprobado', 'Aprobado desde la bandeja rápida');
+        showToast('Pago aprobado con éxito');
+        renderCurrentView();
+      } catch (error) {
+        showToast(error.message);
+      }
     }
 
     // Modal Registrar Pago Manual
@@ -1346,7 +1379,7 @@
       document.getElementById('new-payment-modal').classList.remove('flex');
     }
 
-    document.getElementById('new-payment-form').addEventListener('submit', (e) => {
+    document.getElementById('new-payment-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const churchId = document.getElementById('new-pay-church').value;
       const usdAmount = parseFloat(document.getElementById('new-pay-usd').value) || 0;
@@ -1355,7 +1388,7 @@
       const status = document.getElementById('new-pay-status').value;
       const concept = document.getElementById('new-pay-concept').value;
 
-      const newPay = CofraternidadStore.addPayment({
+      const newPay = await CofraternidadStore.addPayment({
         churchId,
         usdAmount,
         method,
@@ -1365,7 +1398,7 @@
       });
 
       if (status === 'Aprobado') {
-        CofraternidadStore.updatePaymentStatus(newPay.id, 'Aprobado', 'Aprobado en caja');
+        await CofraternidadStore.updatePaymentStatus(newPay.id, 'Aprobado', 'Aprobado en caja');
       }
 
       closeNewPaymentModal();
@@ -1387,18 +1420,32 @@
       document.getElementById('new-church-modal').classList.remove('flex');
     }
 
-    document.getElementById('new-church-form').addEventListener('submit', (e) => {
+    document.getElementById('new-church-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const church = CofraternidadStore.addChurch({
-        name: document.getElementById('church-form-name').value,
-        pastor: document.getElementById('church-form-pastor').value,
-        rif: document.getElementById('church-form-rif').value,
-        phone: document.getElementById('church-form-phone').value,
-        city: document.getElementById('church-form-city').value,
-        address: document.getElementById('church-form-address').value,
-        members: document.getElementById('church-form-members').value,
-        status: document.getElementById('church-form-status').value
+      const clientData = {
+        nombre_organizacion: document.getElementById('church-form-name').value,
+        representante_legal: document.getElementById('church-form-pastor').value,
+        documento_identidad: document.getElementById('church-form-rif').value,
+        telefono: document.getElementById('church-form-phone').value,
+        email: document.getElementById('church-form-email').value,
+        ciudad: document.getElementById('church-form-city').value,
+        direccion: document.getElementById('church-form-address').value,
+        miembros: document.getElementById('church-form-members').value,
+        estatus_juridico: document.getElementById('church-form-status').value
+      };
+      const clientResponse = await fetch('http://localhost:5000/api/clientes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(clientData)
       });
+      const clientResult = await clientResponse.json().catch(() => ({}));
+      if (!clientResponse.ok) {
+        showToast(clientResult.error || 'No se pudo registrar el cliente');
+        return;
+      }
+
+      const church = clientResult.church;
+      await CofraternidadStore.refresh();
 
       closeNewChurchModal();
       e.target.reset();
@@ -1518,7 +1565,7 @@
       document.getElementById('legal-modal').classList.remove('flex');
     }
 
-    document.getElementById('legal-form').addEventListener('submit', (e) => {
+    document.getElementById('legal-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const editId = document.getElementById('legal-form-id').value;
       const churchId = document.getElementById('legal-form-church').value;
@@ -1531,10 +1578,10 @@
       const notes = document.getElementById('legal-form-notes').value;
 
       if (editId) {
-        CofraternidadStore.updateLegalRequestStatus(Number(editId), status, lawyer, notes);
+        await CofraternidadStore.updateLegalRequestStatus(Number(editId), status, lawyer, notes);
         showToast('Expediente actualizado exitosamente');
       } else {
-        CofraternidadStore.addLegalRequest({
+        await CofraternidadStore.addLegalRequest({
           churchId,
           title,
           category,
@@ -1551,10 +1598,10 @@
     });
 
     // Configuración BCV
-    function updateBCVConfig() {
+    async function updateBCVConfig() {
       const val = parseFloat(document.getElementById('config-bcv').value);
       if (val && val > 0) {
-        CofraternidadStore.setConfig({ bcvRate: val });
+        await CofraternidadStore.setConfig({ bcvRate: val });
         showToast('Tasa BCV actualizada a ' + val.toFixed(2) + ' Bs.');
         renderCurrentView();
       }
@@ -1583,7 +1630,7 @@
       }
     });
 
-    // Sincronización en tiempo real con LocalStorage
+    // Sincronización de datos con PostgreSQL
     CofraternidadStore.onUpdate(() => {
       renderCurrentView();
     });
