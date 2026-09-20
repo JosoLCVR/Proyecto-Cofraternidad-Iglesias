@@ -10,15 +10,15 @@
       theme: {
         extend: {
           colors: {
-            ink: '#17211f',
-            pine: '#174d45',
-            'pine-dark': '#0f3630',
-            mint: '#e5f3ed',
-            coral: '#e97a5b'
+            ink: '#22312f',
+            pine: '#456b64',
+            'pine-dark': '#2d4a46',
+            mint: '#edf2ee',
+            coral: '#c98e78'
           },
           boxShadow: {
-            soft: '0 18px 50px rgba(23, 33, 31, .10)',
-            shell: '0 24px 80px rgba(23, 33, 31, .14)'
+            soft: '0 18px 50px rgba(34, 49, 47, .07)',
+            shell: '0 24px 80px rgba(34, 49, 47, .10)'
           }
         }
       }
@@ -26,7 +26,8 @@
   </script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
-    body { font-family: 'DM Sans', sans-serif; }
+    html { background: #f3efe9; }
+    body { font-family: 'DM Sans', sans-serif; min-height: 100vh; }
     .dropzone.dragging { border-color: #174d45; background: #e5f3ed; }
     .tab-active { color: #174d45 !important; font-weight: 700 !important; }
     .tab-active span.tab-icon { transform: scale(1.1); }
@@ -37,13 +38,17 @@
     .toast-in { animation: toast-in .25s ease-out both; }
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    .bg-white { background-color: #fbfaf7 !important; }
-    .bg-slate-50 { background-color: #f3f5f1 !important; }
-    .bg-slate-100 { background-color: #e9eeea !important; }
+    .bg-white { background-color: #fcfaf7 !important; }
+    .bg-slate-50 { background-color: #f4f0eb !important; }
+    .bg-slate-100 { background-color: #efe8e0 !important; }
+    @media (min-width: 640px) {
+      body { padding: 1rem 0; }
+      main { margin: 0 auto; }
+    }
   </style>
 </head>
-<body class="min-h-screen bg-[#e8eee9] text-ink antialiased">
-  <main class="mx-auto min-h-screen max-w-[500px] bg-[#f3f6f2] px-4 py-5 sm:my-6 sm:min-h-[850px] sm:rounded-[36px] sm:px-6 sm:py-6 sm:shadow-shell border border-slate-200/70 flex flex-col justify-between">
+<body class="min-h-screen bg-[#f3efe9] text-ink antialiased">
+  <main class="mx-auto min-h-screen w-full max-w-[500px] bg-[#f6f2ee] px-4 py-5 sm:my-6 sm:min-h-[850px] sm:rounded-[36px] sm:px-6 sm:py-6 sm:shadow-shell border border-slate-200/70 flex flex-col justify-between">
     
     <!-- CONTENIDO SUPERIOR Y PESTAÑAS -->
     <div>
@@ -389,12 +394,17 @@
       const churches = CofraternidadStore.getChurches();
       const session = CofraternidadStore.getSession();
       const visibleChurches = session && session.role === 'church' && session.churchId
-        ? churches.filter(c => c.id === Number(session.churchId))
+        ? churches.filter(c => Number(c.id) === Number(session.churchId))
         : churches;
       const select = document.getElementById('active-church-select');
+      if (!select) return;
       select.innerHTML = visibleChurches.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-      if (visibleChurches.length) activeChurchId = visibleChurches[0].id;
-      select.value = activeChurchId;
+      if (visibleChurches.length) {
+        if (!visibleChurches.some(c => Number(c.id) === Number(activeChurchId))) {
+          activeChurchId = Number(visibleChurches[0].id);
+        }
+        select.value = activeChurchId;
+      }
       select.disabled = visibleChurches.length <= 1;
       select.classList.toggle('cursor-not-allowed', visibleChurches.length <= 1);
       updateActiveChurchDisplay();
@@ -536,39 +546,52 @@
     // Envío del reporte de pago
     document.getElementById('payment-form').addEventListener('submit', async e => {
       e.preventDefault();
-      const amountVal = parseFloat(amountInput.value) || 0;
-      const method = document.getElementById('method').value;
-      const ref = document.getElementById('reference').value;
-      const concept = document.getElementById('concept').value;
-      const config = CofraternidadStore.getConfig();
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Enviando aporte...';
 
-      let usd = 0;
-      let bs = 0;
-      if (selectedCurrency === 'USD') {
-        usd = amountVal;
-        bs = Math.round(usd * config.bcvRate * 100) / 100;
-      } else {
-        bs = amountVal;
-        usd = Math.round((bs / config.bcvRate) * 100) / 100;
+      try {
+        const amountVal = parseFloat(amountInput.value) || 0;
+        const method = document.getElementById('method').value;
+        const ref = document.getElementById('reference').value;
+        const concept = document.getElementById('concept').value;
+        const config = CofraternidadStore.getConfig();
+
+        let usd = 0;
+        let bs = 0;
+        const bcvRate = config.bcvRate || 45.50;
+        if (selectedCurrency === 'USD') {
+          usd = amountVal;
+          bs = Math.round(usd * bcvRate * 100) / 100;
+        } else {
+          bs = amountVal;
+          usd = Math.round((bs / bcvRate) * 100) / 100;
+        }
+
+        await CofraternidadStore.addPayment({
+          churchId: activeChurchId,
+          usdAmount: usd,
+          bsAmount: bs,
+          ref: ref,
+          method: method,
+          concept: concept,
+          receiptUrl: uploadedReceiptBase64,
+          receiptFileName: receipt.files[0] ? receipt.files[0].name : null,
+          notes: 'Reportado por la iglesia mediante Portal Móvil'
+        });
+
+        e.target.reset();
+        removeSelectedReceipt();
+        calcConversion();
+        showToast('¡Aporte enviado! Está pendiente de validación.');
+        switchTab('pagos');
+      } catch (err) {
+        showToast(err.message || 'No se pudo registrar el pago.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
       }
-
-      await CofraternidadStore.addPayment({
-        churchId: activeChurchId,
-        usdAmount: usd,
-        bsAmount: bs,
-        ref: ref,
-        method: method,
-        concept: concept,
-        receiptUrl: uploadedReceiptBase64,
-        receiptFileName: receipt.files[0] ? receipt.files[0].name : null,
-        notes: 'Reportado por la iglesia mediante Portal Móvil'
-      });
-
-      e.target.reset();
-      removeSelectedReceipt();
-      calcConversion();
-      showToast('¡Aporte enviado! Está pendiente de validación.');
-      switchTab('pagos');
     });
 
     // Renderizar Mis Pagos
@@ -715,6 +738,7 @@
 
     // Escuchar actualizaciones de la tienda en vivo (cuando se apruebe en index.html)
     CofraternidadStore.onUpdate(() => {
+      initChurchSelector();
       updateActiveChurchDisplay();
       renderChurchPayments();
       renderChurchLegal();

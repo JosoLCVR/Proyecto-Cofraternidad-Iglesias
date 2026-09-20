@@ -1,15 +1,148 @@
--- Esquema PostgreSQL local. No contiene datos de prueba.
+-- Esquema PostgreSQL para Cofraternidad de Iglesias
 create extension if not exists pgcrypto;
+
 create type user_role as enum ('admin', 'church');
 create type church_status as enum ('Solvente', 'En mora', 'En proceso');
 create type payment_status as enum ('Pendiente', 'Aprobado', 'Rechazado');
 create type legal_status as enum ('Recibido', 'En análisis', 'En Notaría/Registro', 'Concluido', 'Rechazado');
-create table churches (id bigint generated always as identity primary key, name text not null, pastor text not null default '', rif text unique, phone text default '', email text default '', city text default 'Venezuela', address text default '', members integer not null default 0 check (members >= 0), status church_status not null default 'En proceso', initials text not null default 'IG', color text not null default 'bg-emerald-100 text-emerald-800 border-emerald-200', foundation_year integer, last_payment_at timestamptz, created_at timestamptz not null default now(), updated_at timestamptz not null default now());
-create table clientes (id uuid primary key default gen_random_uuid(), nombre_organizacion text not null, representante_legal text not null, documento_identidad text not null unique, telefono text not null default '', email text not null unique, ciudad varchar(160) not null default '', direccion text default '', miembros integer not null default 0 check (miembros >= 0), estatus_juridico text not null default 'por_constituir', created_at timestamptz not null default now(), updated_at timestamptz not null default now());
-create table app_users (id uuid primary key default gen_random_uuid(), email text not null unique, password_hash text not null, name text not null default '', role user_role not null default 'church', church_id bigint references churches(id) on delete set null, created_at timestamptz not null default now(), constraint church_users_need_church check (role = 'admin' or church_id is not null));
-create table app_config (id boolean primary key default true check (id), bcv_rate numeric(12,4) not null default 45.50, org_name text not null default 'Cofraternidad de Iglesias', legal_department text not null default 'Departamento Legal y Registro', contact_phone text default '', contact_email text default '', whatsapp_support text default '', updated_at timestamptz not null default now());
-create table payments (id bigint generated always as identity primary key, church_id bigint not null references churches(id) on delete restrict, submitted_by uuid references app_users(id) on delete set null, usd_amount numeric(14,2) not null default 0 check (usd_amount >= 0), bs_amount numeric(14,2) not null default 0 check (bs_amount >= 0), reference text not null, method text not null default 'Pago Móvil', concept text not null default 'Aporte Mensual', receipt_data text, receipt_file_name text, status payment_status not null default 'Pendiente', notes text not null default '', account_destination text not null default '', reviewed_by uuid references app_users(id) on delete set null, reviewed_at timestamptz, created_at timestamptz not null default now(), unique (church_id, reference));
-create table legal_requests (id bigint generated always as identity primary key, church_id bigint not null references churches(id) on delete restrict, submitted_by uuid references app_users(id) on delete set null, title text not null, category text not null default 'General', description text not null default '', lawyer text not null default 'Pendiente de asignación', status legal_status not null default 'Recibido', priority text not null default 'Media' check (priority in ('Alta', 'Media', 'Normal')), notes text not null default '', created_at timestamptz not null default now(), updated_at timestamptz not null default now());
-create index payments_church_id_idx on payments(church_id);
-create index legal_requests_church_id_idx on legal_requests(church_id);
-insert into app_config (id) values (true);
+
+create table if not exists churches (
+    id bigint generated always as identity primary key,
+    name text not null,
+    pastor text not null default '',
+    rif text unique,
+    phone text default '',
+    email text default '',
+    city text default 'Venezuela',
+    address text default '',
+    members integer not null default 0 check (members >= 0),
+    status church_status not null default 'En proceso',
+    initials text not null default 'IG',
+    color text not null default 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    foundation_year integer,
+    last_payment_at timestamptz,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+create table if not exists clientes (
+    id uuid primary key default gen_random_uuid(),
+    nombre_organizacion text not null,
+    representante_legal text not null,
+    documento_identidad text not null unique,
+    telefono text not null default '',
+    email text not null unique,
+    ciudad varchar(160) not null default '',
+    direccion text default '',
+    miembros integer not null default 0 check (miembros >= 0),
+    estatus_juridico text not null default 'por_constituir',
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+create table if not exists app_users (
+    id uuid primary key default gen_random_uuid(),
+    email text not null unique,
+    password_hash text not null,
+    name text not null default '',
+    role user_role not null default 'church',
+    church_id bigint references churches(id) on delete set null,
+    created_at timestamptz not null default now(),
+    constraint church_users_need_church check (role = 'admin' or church_id is not null)
+);
+
+create table if not exists app_config (
+    id boolean primary key default true check (id),
+    bcv_rate numeric(12,4) not null default 45.50,
+    org_name text not null default 'Cofraternidad de Iglesias',
+    legal_department text not null default 'Departamento Legal y Registro',
+    contact_phone text default '',
+    contact_email text default '',
+    whatsapp_support text default '',
+    updated_at timestamptz not null default now()
+);
+
+create table if not exists payments (
+    id bigint generated always as identity primary key,
+    church_id bigint not null references churches(id) on delete restrict,
+    submitted_by uuid references app_users(id) on delete set null,
+    usd_amount numeric(14,2) not null default 0 check (usd_amount >= 0),
+    bs_amount numeric(14,2) not null default 0 check (bs_amount >= 0),
+    reference text not null,
+    method text not null default 'Pago Móvil',
+    concept text not null default 'Aporte Mensual',
+    receipt_data text,
+    receipt_file_name text,
+    status payment_status not null default 'Pendiente',
+    notes text not null default '',
+    account_destination text not null default '',
+    reviewed_by uuid references app_users(id) on delete set null,
+    reviewed_at timestamptz,
+    created_at timestamptz not null default now(),
+    unique (church_id, reference)
+);
+
+create table if not exists legal_requests (
+    id bigint generated always as identity primary key,
+    church_id bigint not null references churches(id) on delete restrict,
+    submitted_by uuid references app_users(id) on delete set null,
+    title text not null,
+    category text not null default 'General',
+    description text not null default '',
+    lawyer text not null default 'Pendiente de asignación',
+    status legal_status not null default 'Recibido',
+    priority text not null default 'Media' check (priority in ('Alta', 'Media', 'Normal')),
+    notes text not null default '',
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+create table if not exists lawyers (
+    id bigint generated always as identity primary key,
+    name text not null unique,
+    email text not null default '',
+    phone text not null default '',
+    specialty text not null default '',
+    active boolean not null default true,
+    created_at timestamptz not null default now()
+);
+
+do $$
+begin
+    if to_regclass('public.expedientes_legales') is not null then
+        alter table expedientes_legales add column if not exists abogado_nombre text;
+    end if;
+end $$;
+
+-- Índices de rendimiento
+create index if not exists payments_church_id_idx on payments(church_id);
+create index if not exists payments_status_idx on payments(status);
+create index if not exists payments_created_at_idx on payments(created_at desc);
+create index if not exists churches_status_idx on churches(status);
+create index if not exists legal_requests_church_id_idx on legal_requests(church_id);
+create index if not exists legal_requests_status_idx on legal_requests(status);
+create index if not exists app_users_email_lower_idx on app_users (lower(email));
+
+-- Configuración por defecto
+insert into app_config (id) values (true) on conflict (id) do nothing;
+
+-- Trigger para actualizar solvencia de la iglesia al aprobar pagos
+create or replace function update_church_solvency_on_payment()
+returns trigger as $$
+begin
+  if new.status = 'Aprobado' and (old.status is distinct from new.status) then
+    update churches
+    set status = 'Solvente',
+        last_payment_at = new.created_at,
+        updated_at = now()
+    where id = new.church_id;
+  end if;
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists trg_payment_approval_solvency on payments;
+create trigger trg_payment_approval_solvency
+after update of status on payments
+for each row
+execute function update_church_solvency_on_payment();

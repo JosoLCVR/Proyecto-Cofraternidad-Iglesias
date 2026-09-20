@@ -10,16 +10,16 @@
       theme: {
         extend: {
           colors: {
-            ink: '#17211f',
-            pine: '#174d45',
-            'pine-dark': '#0f3630',
-            mint: '#e5f3ed',
-            coral: '#e97a5b',
-            canvas: '#f0f3ef'
+            ink: '#22312f',
+            pine: '#436b63',
+            'pine-dark': '#2d4b46',
+            mint: '#edf2ee',
+            coral: '#c98e78',
+            canvas: '#f4f0ea'
           },
           boxShadow: {
-            soft: '0 18px 50px rgba(23, 33, 31, 0.07)',
-            modal: '0 25px 60px -15px rgba(23, 33, 31, 0.25)'
+            soft: '0 18px 50px rgba(34, 49, 47, 0.06)',
+            modal: '0 25px 60px -15px rgba(34, 49, 47, 0.22)'
           }
         }
       }
@@ -62,10 +62,10 @@
     .toast-in { animation: toast-in .25s cubic-bezier(0.16, 1, 0.3, 1) both; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    .bg-white { background-color: #fbfaf7 !important; }
-    .bg-slate-50 { background-color: #f3f5f1 !important; }
-    .bg-slate-50\/50 { background-color: #f5f6f2 !important; }
-    .bg-slate-50\/70 { background-color: #f1f4ef !important; }
+    .bg-white { background-color: #fcfaf7 !important; }
+    .bg-slate-50 { background-color: #f3efe9 !important; }
+    .bg-slate-50\/50 { background-color: #f5f2ee !important; }
+    .bg-slate-50\/70 { background-color: #f1ece5 !important; }
   </style>
 </head>
 <body class="min-h-screen bg-canvas text-ink antialiased">
@@ -114,6 +114,10 @@
             <span class="hidden md:inline">Trámites Legales</span>
           </div>
           <span id="nav-legal-badge" class="hidden md:inline-flex items-center justify-center rounded-full bg-pine/10 px-2 py-0.5 text-[10px] font-bold text-pine ml-auto">0</span>
+        </button>
+        <button onclick="navigate('abogados')" id="nav-abogados" class="flex w-full items-center justify-center gap-3 rounded-xl px-3 py-3 text-xs font-medium text-slate-600 transition hover:bg-slate-50 md:justify-start md:text-sm">
+          <span class="text-base">⚖</span>
+          <span class="hidden md:inline">Abogados</span>
         </button>
         <button onclick="navigate('soporte')" id="nav-soporte" class="flex w-full items-center justify-center gap-3 rounded-xl px-3 py-3 text-xs font-medium text-slate-600 transition hover:bg-slate-50 md:justify-start md:text-sm">
           <span class="text-base">?</span>
@@ -185,8 +189,8 @@
             <div class="mt-3 flex items-baseline gap-2">
               <strong id="stat-total-usd" class="text-3xl font-bold tracking-[-.04em] text-pine">$ 0</strong>
               <span class="text-xs text-slate-400">USD</span>
-            </div>
             <p id="stat-total-bs" class="mt-1 text-xs text-slate-500 font-semibold">Equiv. Bs. 0</p>
+          </div>
           </div>
 
           <div onclick="navigate('iglesias')" class="cursor-pointer rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition hover:shadow-md hover:border-pine/50">
@@ -429,7 +433,6 @@
             <div class="flex flex-wrap gap-2">
               <select id="legal-status-filter" class="h-10 rounded-xl border border-slate-200 bg-white px-3 text-xs sm:text-sm font-medium outline-none focus:border-pine">
                 <option value="Todos">Todas las fases</option>
-                <option value="Recibido">Recibido</option>
                 <option value="En análisis">En análisis</option>
                 <option value="En Notaría/Registro">En Notaría / Registro</option>
                 <option value="Concluido">Concluido</option>
@@ -451,6 +454,20 @@
           <div id="legal-empty-state" class="hidden py-12 text-center">
             <p class="text-sm font-medium text-slate-500">No hay trámites legales registrados con los filtros aplicados.</p>
           </div>
+        </section>
+      </div>
+
+      <div id="view-abogados" class="view-section mt-8 hidden space-y-6">
+        <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-soft sm:p-6">
+          <div class="flex flex-col gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-ink">Catálogo de Abogados</h2>
+              <p class="mt-1 text-sm text-slate-500">Administra los profesionales disponibles para asignar expedientes.</p>
+            </div>
+            <button onclick="openNewLawyerModal()" class="rounded-xl bg-pine px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-pine-dark transition">+ Añadir Abogado</button>
+          </div>
+          <div id="lawyers-grid" class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+          <div id="lawyers-empty-state" class="hidden py-12 text-center text-sm text-slate-500">Todavía no hay abogados registrados.</div>
         </section>
       </div>
 
@@ -618,6 +635,11 @@
     </div>
   </div>
 
+  <div id="receipt-image-viewer" class="fixed inset-0 z-[60] hidden items-center justify-center bg-slate-950/85 p-4 backdrop-blur-sm" onclick="closeReceiptImageViewer(event)">
+    <button type="button" onclick="closeReceiptImageViewer(event)" class="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-2xl text-white hover:bg-white/20" aria-label="Cerrar imagen ampliada">&times;</button>
+    <img id="receipt-image-viewer-image" src="" alt="Comprobante ampliado" class="max-h-[92vh] max-w-[94vw] rounded-xl object-contain shadow-2xl" onclick="event.stopPropagation()">
+  </div>
+
   <!-- ============================================================== -->
   <!-- MODAL 2: REGISTRAR PAGO MANUAL / EN CAJA -->
   <!-- ============================================================== -->
@@ -763,7 +785,11 @@
           </div>
           <div class="rounded-xl bg-slate-50 p-3 border border-slate-100">
             <span class="text-slate-400 font-medium">Estatus Actual</span>
-            <p id="church-modal-status-pill" class="mt-0.5">-</p>
+            <select id="church-modal-status" class="mt-1 h-8 w-full rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-bold text-pine outline-none focus:border-pine">
+              <option value="Solvente">Solvente</option>
+              <option value="En mora">En mora</option>
+              <option value="En proceso">En proceso</option>
+            </select>
           </div>
           <div class="rounded-xl bg-slate-50 p-3 border border-slate-100">
             <span class="text-slate-400 font-medium">Membresía</span>
@@ -817,6 +843,7 @@
 
       <div class="mt-6 flex justify-end gap-2 border-t border-slate-100 pt-4">
         <button onclick="closeChurchDetailModal()" class="rounded-xl bg-slate-100 px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-200">Cerrar</button>
+        <button onclick="saveChurchStatus()" class="rounded-xl bg-pine px-4 py-2.5 text-xs font-bold text-white hover:bg-pine-dark">Guardar estatus</button>
       </div>
     </div>
   </div>
@@ -855,7 +882,6 @@
           <div>
             <label for="legal-form-status" class="block font-bold mb-1">Fase / Estatus</label>
             <select id="legal-form-status" class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 font-semibold text-pine outline-none focus:border-pine">
-              <option value="Recibido">Recibido</option>
               <option value="En análisis">En análisis</option>
               <option value="En Notaría/Registro">En Notaría / Registro</option>
               <option value="Concluido">Concluido</option>
@@ -873,11 +899,7 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label for="legal-form-lawyer" class="block font-bold mb-1">Abogado Asignado</label>
-            <select id="legal-form-lawyer" class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-pine">
-              <option>Dra. Mariela Ramos</option>
-              <option>Dr. Alejandro Peña</option>
-              <option>Consultor Externo SAREN</option>
-            </select>
+            <select id="legal-form-lawyer" required class="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 outline-none focus:border-pine"></select>
           </div>
           <div>
             <label for="legal-form-priority" class="block font-bold mb-1">Prioridad</label>
@@ -896,6 +918,22 @@
           <button type="button" onclick="closeLegalModal()" class="rounded-xl border border-slate-200 px-4 py-2.5 font-semibold text-slate-600 hover:bg-slate-50">Cancelar</button>
           <button type="submit" class="rounded-xl bg-pine px-4 py-2.5 font-bold text-white hover:bg-pine-dark">Guardar Expediente</button>
         </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="lawyer-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-ink/40 backdrop-blur-sm">
+    <div class="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-modal">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="lawyer-modal-title" class="text-base font-bold text-ink">Añadir Abogado</h3>
+        <button onclick="closeLawyerModal()" class="grid h-8 w-8 place-items-center rounded-full text-slate-400 hover:bg-slate-100">&times;</button>
+      </div>
+      <form id="lawyer-form" class="mt-4 space-y-3 text-xs">
+        <input type="hidden" id="lawyer-form-id">
+        <div><label for="lawyer-name" class="mb-1 block font-bold">Nombre completo</label><input id="lawyer-name" required class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine" placeholder="Dra. Nombre Apellido"></div>
+        <div><label for="lawyer-email" class="mb-1 block font-bold">Correo</label><input id="lawyer-email" type="email" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine"></div>
+        <div class="grid grid-cols-2 gap-3"><div><label for="lawyer-phone" class="mb-1 block font-bold">Teléfono</label><input id="lawyer-phone" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine"></div><div><label for="lawyer-specialty" class="mb-1 block font-bold">Especialidad</label><input id="lawyer-specialty" class="h-10 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-pine"></div></div>
+        <div class="flex justify-end gap-2 border-t border-slate-100 pt-4"><button type="button" onclick="closeLawyerModal()" class="rounded-xl border border-slate-200 px-4 py-2.5 font-semibold text-slate-600">Cancelar</button><button type="submit" class="rounded-xl bg-pine px-4 py-2.5 font-bold text-white">Guardar Abogado</button></div>
       </form>
     </div>
   </div>
@@ -927,6 +965,7 @@
     // ESTADO DE LA APLICACIÓN CENTRAL
     let currentTab = 'inicio';
     let activePaymentViewing = null;
+    let activeChurchViewing = null;
 
     // Elementos del DOM
     const toast = document.getElementById('toast');
@@ -945,7 +984,7 @@
       if (targetView) targetView.classList.remove('hidden');
 
       // Actualizar botones de navegación
-      ['inicio', 'pagos', 'iglesias', 'tramites', 'soporte'].forEach(t => {
+      ['inicio', 'pagos', 'iglesias', 'tramites', 'abogados', 'soporte'].forEach(t => {
         const btn = document.getElementById(`nav-${t}`);
         if (btn) {
           if (t === tabName) {
@@ -962,6 +1001,7 @@
         pagos: 'Bandeja de Pagos y Validación',
         iglesias: 'Directorio de Iglesias Afiliadas',
         tramites: 'Bandeja de Trámites Legales',
+        abogados: 'Catálogo de Abogados',
         soporte: 'Soporte y Consultoría'
       };
       document.getElementById('page-title').textContent = titles[tabName] || 'Control Central';
@@ -1177,6 +1217,33 @@
       `).join('');
     }
 
+    function renderLawyers() {
+      const lawyers = CofraternidadStore.getLawyers();
+      const grid = document.getElementById('lawyers-grid');
+      const empty = document.getElementById('lawyers-empty-state');
+      empty.classList.toggle('hidden', lawyers.length > 0);
+      grid.innerHTML = lawyers.map(lawyer => `
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="flex items-start justify-between gap-3">
+            <div><h3 class="font-bold text-ink">${lawyer.name}</h3><p class="mt-1 text-xs text-slate-500">${lawyer.specialty || 'Consultoría jurídica'}</p></div>
+            <span class="rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-700">Activo</span>
+          </div>
+          <div class="mt-4 space-y-1 text-xs text-slate-500"><p>${lawyer.email || 'Correo no registrado'}</p><p>${lawyer.phone || 'Teléfono no registrado'}</p></div>
+          <button onclick='openEditLawyerModal(${JSON.stringify(String(lawyer.id))})' class="mt-4 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:border-pine hover:text-pine">Editar información</button>
+        </div>
+      `).join('');
+    }
+
+    function populateLawyerSelect(selected = '') {
+      const select = document.getElementById('legal-form-lawyer');
+      const lawyers = CofraternidadStore.getLawyers();
+      const selectedOption = selected && !lawyers.some(lawyer => lawyer.name === selected)
+        ? `<option value="${selected}">${selected} (actual)</option>`
+        : '';
+      select.innerHTML = '<option value="">Seleccionar abogado</option>' + selectedOption + lawyers.map(lawyer => `<option value="${lawyer.name}">${lawyer.name}</option>`).join('');
+      select.value = selected;
+    }
+
     // RENDERIZADO DEL INICIO / DASHBOARD
     function renderInicio() {
       const payments = CofraternidadStore.getPayments();
@@ -1188,13 +1255,14 @@
       const pendingCount = payments.filter(p => p.status === 'Pendiente').length;
       const approvedPayments = payments.filter(p => p.status === 'Aprobado');
       const totalUSD = approvedPayments.reduce((sum, p) => sum + (p.usdAmount || 0), 0);
-      const totalBs = approvedPayments.reduce((sum, p) => sum + (p.bsAmount || 0), 0);
+      const rate = Number(config.bcvRate) || 45.50;
+      const totalBs = totalUSD * rate;
       const solventChurches = churches.filter(c => c.status === 'Solvente').length;
       const activeLegal = legal.filter(l => l.status !== 'Concluido').length;
 
       document.getElementById('stat-pending-payments').textContent = String(pendingCount).padStart(2, '0');
       document.getElementById('stat-total-usd').textContent = CofraternidadStore.formatUSD(totalUSD);
-      document.getElementById('stat-total-bs').textContent = 'Equiv. ' + CofraternidadStore.formatBs(totalBs);
+      document.getElementById('stat-total-bs').textContent = `Equiv. ${CofraternidadStore.formatBs(totalBs)} a Bs. ${rate.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/$`;
       document.getElementById('stat-total-churches').textContent = churches.length;
       document.getElementById('stat-churches-solvent').textContent = `${solventChurches} solventes`;
       document.getElementById('stat-active-legal').textContent = activeLegal;
@@ -1261,6 +1329,7 @@
       if (currentTab === 'pagos') renderPayments();
       if (currentTab === 'iglesias') renderChurches();
       if (currentTab === 'tramites') renderLegal();
+      if (currentTab === 'abogados') renderLawyers();
       updateGlobalCounters();
     }
 
@@ -1287,12 +1356,26 @@
       // Renderizar comprobante / recibo gráfico
       const previewBox = document.getElementById('modal-receipt-preview-box');
       if (p.receiptUrl) {
-        previewBox.innerHTML = `
-          <div class="max-h-64 overflow-hidden rounded-xl border border-slate-200">
-            <img src="${p.receiptUrl}" alt="Comprobante de pago" class="w-full h-auto object-contain">
-          </div>
-          <p class="mt-2 text-[11px] text-slate-500 font-medium">Comprobante adjuntado por la iglesia</p>
-        `;
+        const isPdf = p.receiptUrl.startsWith('data:application/pdf') || (p.receiptFileName && p.receiptFileName.toLowerCase().endsWith('.pdf'));
+        if (isPdf) {
+          previewBox.innerHTML = `
+            <div class="w-full max-w-sm rounded-xl border border-slate-200 bg-white p-4 shadow-sm text-center">
+              <span class="text-3xl">📄</span>
+              <p class="mt-1 text-xs font-bold text-slate-800 truncate">${p.receiptFileName || 'Comprobante_Pago.pdf'}</p>
+              <p class="text-[11px] text-slate-400">Documento bancario en formato PDF</p>
+              <a href="${p.receiptUrl}" download="${p.receiptFileName || 'Comprobante_Pago.pdf'}" target="_blank" class="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-pine px-3.5 py-1.5 text-xs font-bold text-white hover:bg-pine-dark transition">
+                <span>⬇ Abrir / Descargar PDF</span>
+              </a>
+            </div>
+          `;
+        } else {
+          previewBox.innerHTML = `
+            <div class="max-h-64 cursor-zoom-in overflow-hidden rounded-xl border border-slate-200" onclick="openReceiptImageViewer('${p.receiptUrl}')" title="Ampliar comprobante">
+              <img src="${p.receiptUrl}" alt="Comprobante de pago" class="w-full h-auto object-contain">
+            </div>
+            <p class="mt-2 text-[11px] text-slate-500 font-medium">Comprobante adjuntado por la iglesia · Click para ampliar</p>
+          `;
+        }
       } else {
         // Generador de comprobante bancario simulado de alta fidelidad
         previewBox.innerHTML = `
@@ -1342,6 +1425,21 @@
       activePaymentViewing = null;
     }
 
+    function openReceiptImageViewer(imageUrl) {
+      const viewer = document.getElementById('receipt-image-viewer');
+      document.getElementById('receipt-image-viewer-image').src = imageUrl;
+      viewer.classList.remove('hidden');
+      viewer.classList.add('flex');
+    }
+
+    function closeReceiptImageViewer(event) {
+      if (event) event.stopPropagation();
+      const viewer = document.getElementById('receipt-image-viewer');
+      viewer.classList.add('hidden');
+      viewer.classList.remove('flex');
+      document.getElementById('receipt-image-viewer-image').src = '';
+    }
+
     async function handleModalStatusChange(newStatus) {
       if (!activePaymentViewing) return;
       try {
@@ -1381,30 +1479,42 @@
 
     document.getElementById('new-payment-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const churchId = document.getElementById('new-pay-church').value;
-      const usdAmount = parseFloat(document.getElementById('new-pay-usd').value) || 0;
-      const method = document.getElementById('new-pay-method').value;
-      const ref = document.getElementById('new-pay-ref').value;
-      const status = document.getElementById('new-pay-status').value;
-      const concept = document.getElementById('new-pay-concept').value;
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Registrando...';
 
-      const newPay = await CofraternidadStore.addPayment({
-        churchId,
-        usdAmount,
-        method,
-        ref,
-        concept,
-        notes: 'Pago registrado en caja administrativa'
-      });
+      try {
+        const churchId = document.getElementById('new-pay-church').value;
+        const usdAmount = parseFloat(document.getElementById('new-pay-usd').value) || 0;
+        const method = document.getElementById('new-pay-method').value;
+        const ref = document.getElementById('new-pay-ref').value;
+        const status = document.getElementById('new-pay-status').value;
+        const concept = document.getElementById('new-pay-concept').value;
 
-      if (status === 'Aprobado') {
-        await CofraternidadStore.updatePaymentStatus(newPay.id, 'Aprobado', 'Aprobado en caja');
+        const newPay = await CofraternidadStore.addPayment({
+          churchId,
+          usdAmount,
+          method,
+          ref,
+          concept,
+          notes: 'Pago registrado en caja administrativa'
+        });
+
+        if (status === 'Aprobado') {
+          await CofraternidadStore.updatePaymentStatus(newPay.id, 'Aprobado', 'Aprobado en caja');
+        }
+
+        closeNewPaymentModal();
+        e.target.reset();
+        showToast('Pago registrado correctamente');
+        renderCurrentView();
+      } catch (err) {
+        showToast(err.message || 'Error al registrar el pago');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
       }
-
-      closeNewPaymentModal();
-      e.target.reset();
-      showToast('Pago registrado correctamente');
-      renderCurrentView();
     });
 
     // ==============================================================
@@ -1422,35 +1532,35 @@
 
     document.getElementById('new-church-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const clientData = {
-        nombre_organizacion: document.getElementById('church-form-name').value,
-        representante_legal: document.getElementById('church-form-pastor').value,
-        documento_identidad: document.getElementById('church-form-rif').value,
-        telefono: document.getElementById('church-form-phone').value,
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+
+      const churchData = {
+        name: document.getElementById('church-form-name').value,
+        pastor: document.getElementById('church-form-pastor').value,
+        rif: document.getElementById('church-form-rif').value,
+        phone: document.getElementById('church-form-phone').value,
         email: document.getElementById('church-form-email').value,
-        ciudad: document.getElementById('church-form-city').value,
-        direccion: document.getElementById('church-form-address').value,
-        miembros: document.getElementById('church-form-members').value,
-        estatus_juridico: document.getElementById('church-form-status').value
+        city: document.getElementById('church-form-city').value,
+        address: document.getElementById('church-form-address').value,
+        members: Number(document.getElementById('church-form-members').value) || 0,
+        status: document.getElementById('church-form-status').value
       };
-      const clientResponse = await fetch('http://localhost:5000/api/clientes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(clientData)
-      });
-      const clientResult = await clientResponse.json().catch(() => ({}));
-      if (!clientResponse.ok) {
-        showToast(clientResult.error || 'No se pudo registrar el cliente');
-        return;
+
+      try {
+        const church = await CofraternidadStore.addChurch(churchData);
+        closeNewChurchModal();
+        e.target.reset();
+        showToast(`Iglesia "${church.name}" afiliada exitosamente`);
+        renderCurrentView();
+      } catch (err) {
+        showToast(err.message || 'No se pudo afiliar la iglesia');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
       }
-
-      const church = clientResult.church;
-      await CofraternidadStore.refresh();
-
-      closeNewChurchModal();
-      e.target.reset();
-      showToast(`Iglesia "${church.name}" afiliada exitosamente`);
-      renderCurrentView();
     });
 
     function openChurchDetailModal(id) {
@@ -1471,7 +1581,8 @@
         'En mora': 'bg-rose-50 text-rose-700 border border-rose-200',
         'En proceso': 'bg-blue-50 text-blue-700 border border-blue-200'
       };
-      document.getElementById('church-modal-status-pill').innerHTML = `<span class="inline-block rounded-full px-2 py-0.5 text-[11px] font-bold ${statusColors[church.status] || 'bg-slate-100 text-slate-700'}">${church.status}</span>`;
+      activeChurchViewing = church;
+      document.getElementById('church-modal-status').value = church.status;
 
       // Pagos de esta iglesia
       const allPayments = CofraternidadStore.getPayments();
@@ -1517,6 +1628,27 @@
     function closeChurchDetailModal() {
       document.getElementById('church-detail-modal').classList.add('hidden');
       document.getElementById('church-detail-modal').classList.remove('flex');
+      activeChurchViewing = null;
+    }
+
+    async function saveChurchStatus() {
+      if (!activeChurchViewing) return;
+      const status = document.getElementById('church-modal-status').value;
+      const button = document.querySelector('#church-detail-modal button[onclick="saveChurchStatus()"]');
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Guardando...';
+      try {
+        await CofraternidadStore.updateChurchStatus(activeChurchViewing.id, status);
+        closeChurchDetailModal();
+        showToast('Estatus de iglesia actualizado');
+        renderCurrentView();
+      } catch (error) {
+        showToast(error.message || 'No se pudo actualizar el estatus');
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText;
+      }
     }
 
     function quickRegisterPaymentForChurch(churchId) {
@@ -1531,12 +1663,13 @@
       const churches = CofraternidadStore.getChurches();
       const select = document.getElementById('legal-form-church');
       select.innerHTML = churches.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      populateLawyerSelect();
 
       document.getElementById('legal-modal-title').textContent = 'Aperturar Trámite Legal';
       document.getElementById('legal-form-id').value = '';
       document.getElementById('legal-form-name').value = '';
       document.getElementById('legal-form-desc').value = '';
-      document.getElementById('legal-form-status').value = 'Recibido';
+      document.getElementById('legal-form-status').value = 'En análisis';
       document.getElementById('legal-form-notes').value = '';
 
       document.getElementById('legal-modal').classList.remove('hidden');
@@ -1552,10 +1685,10 @@
       document.getElementById('legal-form-id').value = req.id;
       document.getElementById('legal-form-church').value = req.churchId;
       document.getElementById('legal-form-category').value = req.category;
-      document.getElementById('legal-form-status').value = req.status;
+      document.getElementById('legal-form-status').value = req.status === 'Recibido' ? 'En análisis' : req.status;
       document.getElementById('legal-form-name').value = req.title;
       document.getElementById('legal-form-desc').value = req.description;
-      document.getElementById('legal-form-lawyer').value = req.lawyer;
+      populateLawyerSelect(req.lawyer);
       document.getElementById('legal-form-priority').value = req.priority || 'Normal';
       document.getElementById('legal-form-notes').value = req.notes || '';
     }
@@ -1565,8 +1698,70 @@
       document.getElementById('legal-modal').classList.remove('flex');
     }
 
+    function openNewLawyerModal() {
+      document.getElementById('lawyer-modal-title').textContent = 'Añadir Abogado';
+      document.getElementById('lawyer-form-id').value = '';
+      document.getElementById('lawyer-form').reset();
+      document.getElementById('lawyer-modal').classList.remove('hidden');
+      document.getElementById('lawyer-modal').classList.add('flex');
+      document.getElementById('lawyer-name').focus();
+    }
+
+    function openEditLawyerModal(id) {
+      const lawyer = CofraternidadStore.getLawyers().find(item => String(item.id) === String(id));
+      if (!lawyer) return;
+      document.getElementById('lawyer-modal-title').textContent = 'Editar Abogado';
+      document.getElementById('lawyer-form-id').value = lawyer.id;
+      document.getElementById('lawyer-name').value = lawyer.name;
+      document.getElementById('lawyer-email').value = lawyer.email || '';
+      document.getElementById('lawyer-phone').value = lawyer.phone || '';
+      document.getElementById('lawyer-specialty').value = lawyer.specialty || '';
+      document.getElementById('lawyer-modal').classList.remove('hidden');
+      document.getElementById('lawyer-modal').classList.add('flex');
+      document.getElementById('lawyer-name').focus();
+    }
+
+    function closeLawyerModal() {
+      document.getElementById('lawyer-modal').classList.add('hidden');
+      document.getElementById('lawyer-modal').classList.remove('flex');
+    }
+
+    document.getElementById('lawyer-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const lawyerId = document.getElementById('lawyer-form-id').value;
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+      try {
+        const lawyerData = {
+          name: document.getElementById('lawyer-name').value,
+          email: document.getElementById('lawyer-email').value,
+          phone: document.getElementById('lawyer-phone').value,
+          specialty: document.getElementById('lawyer-specialty').value
+        };
+        if (lawyerId) await CofraternidadStore.updateLawyer(lawyerId, lawyerData);
+        else await CofraternidadStore.addLawyer(lawyerData);
+        closeLawyerModal();
+        e.target.reset();
+        populateLawyerSelect();
+        renderLawyers();
+        showToast(lawyerId ? 'Abogado actualizado correctamente' : 'Abogado añadido correctamente');
+      } catch (err) {
+        showToast(err.message || 'No se pudo añadir el abogado');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
+    });
+
     document.getElementById('legal-form').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+
       const editId = document.getElementById('legal-form-id').value;
       const churchId = document.getElementById('legal-form-church').value;
       const category = document.getElementById('legal-form-category').value;
@@ -1577,24 +1772,31 @@
       const priority = document.getElementById('legal-form-priority').value;
       const notes = document.getElementById('legal-form-notes').value;
 
-      if (editId) {
-        await CofraternidadStore.updateLegalRequestStatus(Number(editId), status, lawyer, notes);
-        showToast('Expediente actualizado exitosamente');
-      } else {
-        await CofraternidadStore.addLegalRequest({
-          churchId,
-          title,
-          category,
-          description,
-          lawyer,
-          priority,
-          notes
-        });
-        showToast('Trámite legal creado y asignado');
-      }
+      try {
+        if (editId) {
+          await CofraternidadStore.updateLegalRequestStatus(editId, status, lawyer, notes);
+          showToast('Expediente actualizado exitosamente');
+        } else {
+          await CofraternidadStore.addLegalRequest({
+            churchId,
+            title,
+            category,
+            description,
+            lawyer,
+            priority,
+            notes
+          });
+          showToast('Trámite legal creado y asignado');
+        }
 
-      closeLegalModal();
-      renderCurrentView();
+        closeLegalModal();
+        renderCurrentView();
+      } catch (err) {
+        showToast(err.message || 'No se pudo guardar el expediente');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
+      }
     });
 
     // Configuración BCV
@@ -1627,6 +1829,8 @@
         closeNewChurchModal();
         closeChurchDetailModal();
         closeLegalModal();
+        closeLawyerModal();
+        closeReceiptImageViewer();
       }
     });
 
